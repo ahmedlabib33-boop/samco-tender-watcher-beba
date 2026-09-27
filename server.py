@@ -6,8 +6,11 @@ Every response is no-store; the API reflects the real on-disk snapshot.
 """
 import argparse
 import json
+import os
+import subprocess
 import sys
 import threading
+import time
 import webbrowser
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -19,7 +22,16 @@ DASHBOARD = ROOT / "dashboard.html"
 LATEST = ROOT / "vercel" / "data" / "latest.json"
 TENDERS = ROOT / "tenders.json"
 STATE = ROOT / "state" / "state.json"
+NOTIFY = ROOT / "notify.json"
+ENGINE = ROOT / "Watcher.py"
+ENGINE_LOCK = ROOT / "state" / "engine.lock"
 LOGFILE = ROOT / "logs" / "server.log"
+WATCHNOW_LOG = ROOT / "logs" / "watchnow.log"
+
+# Real state of the last dashboard-triggered cycle; null means "never started".
+_WATCH = {"proc": None, "pid": None, "started_at": None, "started_iso": None,
+          "snapshot_before": None, "exit_code": None, "finished_iso": None}
+_WATCH_LOCK = threading.Lock()
 
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -49,6 +61,85 @@ def _read_json(path):
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return None
+
+
+def _snapshot_generated_at():
+    return (_read_json(TENDERS) or {}).get("generated_at")
+
+
+def _log_tail(path, lines=4):
+    try:
+        data = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        return data[-lines:]
+    except OSError:
+        return []
+
+
+def _watch_status():
+    """Honest live status of the dashboard-triggered cycle: running / finished /
+    never started, plus whether the on-disk snapshot actually changed."""
+    with _WATCH_LOCK:
+        proc = _WATCH["proc"]
+        running = bool(proc and proc.poll() is None)
+        exit_code = _WATCH["exit_code"]
+        if proc and not running and exit_code is None:
+            exit_code = proc.returncode
+            _WATCH["exit_code"] = exit_code
+            _WATCH["finished_iso"] = datetime.now(timezone.utc).isoformat()
+        elapsed = None
+        if _WATCH["started_at"]:
+            if running:
+                end = time.time()
+            elif _WATCH["finished_iso"]:
+                end = datetime.fromisoformat(_WATCH["finished_iso"]).timestamp()
+            else:
+                end = _WATCH["started_at"]
+            elapsed = round(max(0, end - _WATCH["started_at"]), 1)
+        snap_now = _snapshot_generated_at()
+        return {
+            "mode": "local_engine",
+            "running": running,
+            "pid": _WATCH["pid"],
+            "started_at": _WATCH["started_iso"],
+            "finished_at": _WATCH["finished_iso"],
+            "elapsed_s": elapsed,
+            "exit_code": exit_code,
+            "snapshot_before": _WATCH["snapshot_before"],
+            "snapshot_generated_at": snap_now,
+            "snapshot_changed": bool(_WATCH["snapshot_before"] and snap_now
+                                     and snap_now != _WATCH["snapshot_before"]),
+            "started_ever": _WATCH["started_at"] is not None,
+            "log_tail": _log_tail(WATCHNOW_LOG),
+        }
+
+
+def _ntfy_publish(cfg, title, body, priority=3, tags=None):
+    """Real ntfy POST from the local server (same JSON publish the engine uses).
+    Returns exactly what ntfy answered - never a fabricated success."""
+    import urllib.request
+    topic = (cfg.get("ntfy_topic") or "").strip()
+    if not topic:
+        return {"sent": False, "error": "no ntfy_topic configured in notify.json"}
+    payload = {"topic": topic, "title": title, "message": body, "priority": int(priority)}
+    if cfg.get("click_url"):
+        payload["click"] = cfg["click_url"]
+    if tags:
+        payload["tags"] = tags
+    req = urllib.request.Request(("%s" % (cfg.get("ntfy_server") or "https://ntfy.sh")).rstrip("/"),
+                                 data=json.dumps(payload).encode("utf-8"),
+                                 headers={"Content-Type": "application/json"},
+                                 method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            text = r.read(400).decode("utf-8", "replace")
+            if r.status == 200 and '"id"' in text:
+                return {"sent": True, "at": datetime.now(timezone.utc).isoformat(),
+                        "http_status": r.status, "topic": topic}
+            return {"sent": False, "http_status": r.status, "topic": topic,
+                    "error": "ntfy answered HTTP %s: %s" % (r.status, text[:160])}
+    except Exception as e:
+        return {"sent": False, "topic": topic,
+                "error": "%s: %s" % (type(e).__name__, str(e)[:160])}
 
 
 def _health_payload():
@@ -134,6 +225,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(404, {"error": "no snapshot yet - run Watcher.py first"})
         elif path == "/api/health":
             self._json(200, _health_payload())
+        elif path == "/api/watch-status":
+            self._json(200, _watch_status())
         elif path == "/tenders.json":
             if TENDERS.exists():
                 self._send(200, TENDERS.read_bytes(), "application/json; charset=utf-8")
@@ -146,8 +239,87 @@ class Handler(BaseHTTPRequestHandler):
         else:
             self._json(404, {"error": "not found"})
 
+    def _read_body(self):
+        try:
+            length = min(int(self.headers.get("Content-Length") or 0), 4096)
+        except ValueError:
+            length = 0
+        raw = self.rfile.read(length) if length else b""
+        try:
+            return json.loads(raw.decode("utf-8")) if raw else {}
+        except Exception:
+            return {}
+
     def do_POST(self):
-        self._json(405, {"error": "method not allowed"})
+        path = urlsplit(self.path).path
+        body = self._read_body()
+        if path == "/api/watch-now":
+            self._post_watch_now()
+        elif path == "/api/notify-test":
+            self._post_notify_test(body)
+        else:
+            self._json(404, {"error": "not found"})
+
+    def _post_watch_now(self):
+        """Spawn one real full engine cycle (Watcher.py --once --render). If the
+        loop engine holds the cycle lock, or a watch-now from this server is still
+        running, say so honestly instead of queueing a second writer."""
+        with _WATCH_LOCK:
+            proc = _WATCH["proc"]
+            if proc and proc.poll() is None:
+                self._json(200, {"mode": "local_engine", "started": False, "busy": True,
+                                 "reason": "a watch-now cycle is already running (pid %s)" % _WATCH["pid"],
+                                 "status": _watch_status()})
+                return
+            try:
+                age = time.time() - ENGINE_LOCK.stat().st_mtime
+            except OSError:
+                age = None
+            if age is not None and age < 20 * 60:
+                self._json(200, {"mode": "local_engine", "started": False, "busy": True,
+                                 "reason": "the loop engine is mid-cycle right now "
+                                           "(state/engine.lock is %.0fs old) - it will refresh the "
+                                           "snapshot when it finishes" % age})
+                return
+            WATCHNOW_LOG.parent.mkdir(parents=True, exist_ok=True)
+            out = open(WATCHNOW_LOG, "ab", buffering=0)
+            out.write(("\n===== watch-now %s =====\n" % datetime.now().strftime("%Y-%m-%d %H:%M:%S")).encode())
+            flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) if os.name == "nt" else 0
+            try:
+                proc = subprocess.Popen([sys.executable, str(ENGINE), "--once", "--render"],
+                                        cwd=str(ROOT), stdout=out, stderr=subprocess.STDOUT,
+                                        creationflags=flags)
+            except Exception as e:
+                out.close()
+                self._json(500, {"mode": "local_engine", "started": False,
+                                 "reason": "could not start the engine: %s" % e})
+                return
+            _WATCH.update({"proc": proc, "pid": proc.pid, "started_at": time.time(),
+                           "started_iso": datetime.now(timezone.utc).isoformat(),
+                           "snapshot_before": _snapshot_generated_at(),
+                           "exit_code": None, "finished_iso": None})
+            self._json(200, {"mode": "local_engine", "started": True, "pid": proc.pid,
+                             "started_at": _WATCH["started_iso"],
+                             "snapshot_before": _WATCH["snapshot_before"],
+                             "note": "real full cycle started: probing every source (+ headless-Chrome "
+                                     "render pass). Takes about 5-8 minutes; the snapshot updates at the end."})
+
+    def _post_notify_test(self, body):
+        cfg = _read_json(NOTIFY) or {}
+        topic = (body.get("topic") or cfg.get("ntfy_topic") or "").strip()
+        if topic and topic != cfg.get("ntfy_topic"):
+            cfg = dict(cfg)
+            cfg["ntfy_topic"] = topic
+        if not cfg:
+            self._json(500, {"sent": False, "error": "notify.json missing or unreadable"})
+            return
+        res = _ntfy_publish(cfg, "%s — test notification" % (cfg.get("title_prefix") or "SAMCO Watcher"),
+                            "Test from the SAMCO Watcher dashboard. If you can read this on your phone, "
+                            "real High/Critical tender alerts will arrive the same way.",
+                            priority=3, tags=["construction", "bell"])
+        res["topic"] = topic
+        res["server"] = cfg.get("ntfy_server") or "https://ntfy.sh"
+        self._json(200 if res.get("sent") else 502, res)
 
     do_PUT = do_DELETE = do_PATCH = do_POST
 

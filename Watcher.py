@@ -50,6 +50,8 @@ TENDERS_FILE = ROOT / "tenders.json"
 STATE_DIR = ROOT / "state"
 STATE_FILE = STATE_DIR / "state.json"
 LOG_FILE = ROOT / "logs" / "watcher.log"
+NOTIFY_FILE = ROOT / "notify.json"
+LOCK_FILE = STATE_DIR / "engine.lock"
 WEB_DIR = ROOT / "vercel"
 WEB_DATA_FILE = WEB_DIR / "data" / "latest.json"
 WEB_INDEX_FILE = WEB_DIR / "index.html"
@@ -84,6 +86,40 @@ def log(msg):
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with LOG_FILE.open("a", encoding="utf-8") as f:
         f.write(line + "\n")
+
+
+# ------------------------------------------------------- single-cycle lock
+def acquire_cycle_lock():
+    """Advisory exclusive lock so the loop engine and a watch-now spawn never write
+    state/dashboard at the same time. Stale locks (crashed engine) auto-expire."""
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    for attempt in (0, 1):
+        try:
+            fd = os.open(str(LOCK_FILE), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                json.dump({"pid": os.getpid(), "started_at": now_iso()}, fh)
+            return True
+        except FileExistsError:
+            try:
+                age = time.time() - LOCK_FILE.stat().st_mtime
+            except OSError:
+                age = 0
+            if attempt == 0 and age > 20 * 60:
+                log("cycle lock is stale (%.0fs old) — taking over" % age)
+                try:
+                    LOCK_FILE.unlink()
+                except OSError:
+                    pass
+                continue
+            return False
+    return False
+
+
+def release_cycle_lock():
+    try:
+        LOCK_FILE.unlink()
+    except OSError:
+        pass
 
 
 def write_json(path, obj):
@@ -552,7 +588,8 @@ def probe_source(src, prev_src_state, render_results, use_render):
            "content_hash": None, "rows_found": 0, "error": None, "health_state": "not_checked",
            "watched_last_turn": False, "last_checked": now_iso(), "changed_last_run": False,
            "last_changed_at": (prev_src_state or {}).get("last_changed_at"),
-           "tls_insecure": False, "render_used": False, "extractor": src.get("extractor") or "generic"}
+           "tls_insecure": False, "render_used": False, "render": bool(src.get("render")),
+           "extractor": src.get("extractor") or "generic"}
     target = src.get("listing_url") or src.get("url")
     if not target:
         res["error"] = "no URL in registry"
@@ -715,6 +752,74 @@ def apply_scoring(t, today, baseline):
     return t
 
 
+# ------------------------------------------------------- notifications (real push)
+URGENCY_RANK = {"Critical": 2, "High": 1, "Medium": 0, "Normal": 0, "Closed": -1}
+
+
+def load_notify_cfg():
+    try:
+        cfg = json.loads(NOTIFY_FILE.read_text(encoding="utf-8"))
+        return cfg if isinstance(cfg, dict) else {}
+    except Exception:
+        return {}
+
+
+def send_ntfy(cfg, title, body, priority=3, tags=None):
+    """One real HTTP POST to the configured ntfy server (JSON publish covers UTF-8
+    titles cleanly). Returns exactly what the server answered — never a fake success."""
+    topic = (cfg.get("ntfy_topic") or "").strip()
+    if not topic:
+        return {"sent": False, "error": "no ntfy_topic configured in notify.json", "at": now_iso()}
+    payload = {"topic": topic, "title": title, "message": body, "priority": int(priority)}
+    if cfg.get("click_url"):
+        payload["click"] = cfg["click_url"]
+    if tags:
+        payload["tags"] = tags
+    try:
+        r = requests.post(cfg.get("ntfy_server") or "https://ntfy.sh", json=payload, timeout=20)
+        if r.status_code == 200 and '"id"' in r.text:
+            return {"sent": True, "at": now_iso(), "http_status": r.status_code, "topic": topic}
+        return {"sent": False, "at": now_iso(), "http_status": r.status_code,
+                "topic": topic, "error": "ntfy answered HTTP %s: %s" % (r.status_code, r.text[:160])}
+    except Exception as e:
+        return {"sent": False, "at": now_iso(), "topic": topic,
+                "error": "%s: %s" % (type(e).__name__, str(e)[:160])}
+
+
+def notify_cycle(cfg, records, run_rec):
+    """Send one push per cycle when this cycle produced new/changed tenders at or
+    above min_urgency. Cycles with nothing to report are recorded as an honest
+    'not sent' with the reason, never a silent skip."""
+    if not cfg.get("enabled"):
+        return {"sent": False, "at": now_iso(), "reason": "notifications disabled in notify.json"}
+    if not (cfg.get("ntfy_topic") or "").strip():
+        return {"sent": False, "at": now_iso(), "reason": "no ntfy_topic configured in notify.json"}
+    min_rank = URGENCY_RANK.get(cfg.get("min_urgency") or "High", 1)
+    picks = [t for t in records
+             if (t.get("is_new") or t.get("is_updated"))
+             and URGENCY_RANK.get(t.get("urgency"), -1) >= min_rank]
+    if not picks:
+        return {"sent": False, "at": now_iso(), "run_no": run_rec["run_no"],
+                "reason": "no new/changed %s tenders this cycle" % (cfg.get("min_urgency") or "High")}
+    picks.sort(key=lambda t: -t.get("attention_score", 0))
+    lines = []
+    for t in picks[:5]:
+        lines.append("- %s | %s | deadline %s | %s" % (
+            t.get("country") or "?", (t.get("title") or "")[:90],
+            t.get("deadline") or "not published", t.get("urgency") or ""))
+    if len(picks) > 5:
+        lines.append("...+%d more on the dashboard" % (len(picks) - 5))
+    body = ("Real check run #%d: %d new, %d changed on the watched sources.\n%s"
+            % (run_rec["run_no"], run_rec["records_new"], run_rec["records_changed"], "\n".join(lines)))
+    prio = 5 if any(t.get("urgency") == "Critical" for t in picks) else 4
+    res = send_ntfy(cfg, "%s — %d new/changed tender(s)" % (cfg.get("title_prefix") or "SAMCO Watcher", len(picks)),
+                    body, priority=prio, tags=["construction", "rotating_light" if prio == 5 else "bell"])
+    res["items"] = len(picks)
+    res["run_no"] = run_rec["run_no"]
+    res["min_urgency"] = cfg.get("min_urgency") or "High"
+    return res
+
+
 def run_cycle(args, state):
     started = now_iso()
     t0 = time.time()
@@ -809,12 +914,29 @@ def run_cycle(args, state):
                             "last_status": h.get("http_status"), "last_rows": h.get("rows_found"),
                             "health_state": h.get("health_state"), "last_checked": h.get("last_checked")}
 
+    # real push notification for this cycle (honest result recorded either way)
+    notify_cfg = load_notify_cfg()
+    notify_last = notify_cycle(notify_cfg, all_records, run_rec)
+    notify_hist = (state.get("notify") or {}).get("history") or []
+    notify_hist = notify_hist + [notify_last]
+    log("notify: %s" % ("sent to ntfy topic %s" % notify_last.get("topic")
+                        if notify_last.get("sent") else "not sent — %s" % notify_last.get("reason")))
+
     data = {"generated_at": now_iso(), "watch": watch, "scoring_note": SCORING_NOTE,
             "work_type_note": WORK_TYPE_NOTE,
             "tenders": all_records, "health": health, "gcc": sources.get("gcc") or [],
             "africa": sources.get("africa") or [], "regions": sources.get("regions") or {},
             "runs": runs[-200:], "authorities_without_url": sources.get("authorities_without_url") or [],
-            "listing_items": all_items[:400]}
+            "listing_items": all_items[:400],
+            "notify": {"enabled": bool(notify_cfg.get("enabled")),
+                       "provider": notify_cfg.get("provider") or "",
+                       "ntfy_server": notify_cfg.get("ntfy_server") or "https://ntfy.sh",
+                       "ntfy_topic": notify_cfg.get("ntfy_topic") or "",
+                       "min_urgency": notify_cfg.get("min_urgency") or "High",
+                       "click_url": notify_cfg.get("click_url") or "",
+                       "subscribe": notify_cfg.get("subscribe") or {},
+                       "note": notify_cfg.get("note") or "",
+                       "last": notify_last, "history": notify_hist[-50:]}}
 
     tpl = TEMPLATE_FILE.read_text(encoding="utf-8")
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
@@ -824,7 +946,8 @@ def run_cycle(args, state):
         write_json(WEB_DATA_FILE, data)
     write_json(TENDERS_FILE, {"generated_at": data["generated_at"], "watch": watch,
                               "tenders": all_records, "health": health, "listing_items": all_items[:400]})
-    new_state = {"last_run": run_rec, "sources": src_mem, "tenders": mem, "runs": runs[-500:]}
+    new_state = {"last_run": run_rec, "sources": src_mem, "tenders": mem, "runs": runs[-500:],
+                 "notify": {"history": notify_hist[-50:]}}
     write_json(STATE_FILE, new_state)
     log("run #%d done — records %d (new %d, changed %d), dashboard written%s, %s"
         % (run_no, len(all_records), new_n, upd_n,
@@ -851,20 +974,31 @@ def main():
     if args.loop:
         log("loop mode — every %d min (Ctrl+C to stop)" % args.interval)
         while True:
-            try:
-                state = run_cycle(args, state)
-            except KeyboardInterrupt:
-                log("loop stopped by user")
-                return
-            except Exception:
-                log("cycle error:\n" + traceback.format_exc())
+            if acquire_cycle_lock():
+                try:
+                    state = run_cycle(args, state)
+                except KeyboardInterrupt:
+                    log("loop stopped by user")
+                    return
+                except Exception:
+                    log("cycle error:\n" + traceback.format_exc())
+                finally:
+                    release_cycle_lock()
+            else:
+                log("cycle skipped — another engine cycle is already running (state/engine.lock)")
             try:
                 time.sleep(max(30, args.interval * 60))
             except KeyboardInterrupt:
                 log("loop stopped by user")
                 return
     else:
-        run_cycle(args, state)
+        if acquire_cycle_lock():
+            try:
+                run_cycle(args, state)
+            finally:
+                release_cycle_lock()
+        else:
+            log("cycle skipped — another engine cycle is already running (state/engine.lock)")
 
 
 if __name__ == "__main__":
