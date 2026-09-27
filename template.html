@@ -116,7 +116,7 @@
 <select id="status"><option value="">All statuses</option></select>
 <select id="urgency"><option value="">All urgency</option></select>
 <select id="verification"><option value="">All verification</option></select>
-<select id="sector"><option value="">All sectors</option></select>
+<select id="workType" title="Keyword-estimated from each tender's real title text — not a source field"><option value="">All work types</option></select>
 <input id="search" placeholder="Search title, issuer, city, reference...">
 </div>
 
@@ -297,7 +297,7 @@ tickFresh();setInterval(tickFresh,60000);
 
 function fill(id,vals){(vals||[]).forEach(v=>{const el=$(id);if(el)el.insertAdjacentHTML("beforeend",`<option>${esc(v)}</option>`)})}
 fill("country",uniq(TENDERS.map(x=>x.country)));fill("status",uniq(TENDERS.map(x=>x.status)));fill("urgency",uniq(TENDERS.map(x=>x.urgency)));
-fill("verification",uniq(TENDERS.map(x=>x.verification_status)));fill("sector",uniq(TENDERS.map(x=>x.sector)));
+fill("verification",uniq(TENDERS.map(x=>x.verification_status)));fill("workType",["Mega project","Small project","Procurement","Other works"].filter(v=>TENDERS.some(x=>x.work_type===v)));
 fill("queueUrgency",uniq(TENDERS.map(x=>x.urgency)));fill("queueCountry",uniq(TENDERS.map(x=>x.country)));
 fill("siteCountry",uniq(HEALTH.map(x=>x.country)));
 fill("africaRegion",uniq(AFRICA.map(x=>x.region_group)));fill("africaCountry",uniq(AFRICA.map(x=>x.country)));
@@ -306,7 +306,7 @@ Object.keys(REGIONS).forEach(v=>$("regionCountry").insertAdjacentHTML("beforeend
 
 function filtered(){
   const vals={country:$("country").value,status:$("status").value,urgency:$("urgency").value,
-    verification_status:$("verification").value,sector:$("sector").value};
+    verification_status:$("verification").value,work_type:$("workType").value};
   const q=$("search").value.trim().toLowerCase();
   return TENDERS.filter(r=>{
     for(const[k,v]of Object.entries(vals))if(v&&r[k]!==v)return false;
@@ -324,14 +324,14 @@ function render(){
   const ok=HEALTH.filter(h=>h.watched_last_turn).length;$("okSites").textContent=ok+"/"+HEALTH.length;
   $("provNote").innerHTML=`Real check snapshot: <b>${esc(ts(DATA.generated_at))}</b> — ${HEALTH.length} sources probed, <b>${ok}</b> watched OK, ${HEALTH.length-ok} failed/limited (see Watched Sites and Run Log tabs). `
     +`${GAPS.length} registry authorities still have no public URL and cannot be watched yet (Run Log tab). `
-    +`Tenders below were extracted only from official/real responses; nothing is invented. Scoring rule: ${esc(DATA.scoring_note||"")}`;
+    +`Tenders below were extracted only from official/real responses; nothing is invented. Scoring rule: ${esc(DATA.scoring_note||"")} Work-type filter note: ${esc(DATA.work_type_note||"")}`;
   $("execContent").innerHTML=rows.slice(0,6).map(r=>`<div class="card"><b>${esc(r.country)} — ${esc(r.title)}</b>
     <div class="small">${esc(r.issuer)} · ${esc(r.city||r.region||"")} · Ref ${esc(r.reference||"—")}</div>
-    <div class="small">Urgency ${esc(r.urgency)} · Attention ${r.attention_score} · Verification ${esc(r.verification_status)} · Deadline ${esc(r.deadline||"—")}</div>
+    <div class="small">Urgency ${esc(r.urgency)} · Attention ${r.attention_score} · Type ${esc(r.work_type||"—")} · Verification ${esc(r.verification_status)} · Deadline ${esc(r.deadline||"—")}</div>
     <div class="small">Evidence: ${esc(r.how_found)} · ${esc(r.source_name)} (${r.evidence_http||"—"}, ${r.evidence_rows||0} rows)</div>
     <div class="small">Next: ${esc(r.next_action)}</div>${r.source_url?`<a class="btn" target="_blank" href="${esc(r.source_url)}">Open source ↗</a>`:""}</div>`).join("")||`<div class="card">No tender rows extracted in this snapshot. Run Watcher.py and check Run Log.</div>`;
   renderQueueTable(rows);
-  $("cards").innerHTML=rows.map(r=>`<div class="card"><div><span class="badge">${esc(r.country||"")}</span><span class="badge">${esc(r.category||"")}</span><span class="badge">${esc(r.status||"")}</span><span class="badge">${esc(r.urgency||"")}</span></div><h3>${esc(r.title||"")}</h3><div class="small"><b>${esc(r.issuer||"")}</b> · ${esc([r.city,r.region].filter(Boolean).join(" / "))} · Ref ${esc(r.reference||"—")}</div><div class="small">Deadline <b>${esc(r.deadline||"—")}</b>${r.remaining_days!=null?" · "+r.remaining_days+" days left":""}</div><div class="small">How it came: <b>${esc(r.source_type||"")}</b> via <b>${esc(r.source_name||"")}</b> (${esc(r.how_found||"")})</div><div class="small">Next action: <b>${esc(r.next_action||"")}</b></div>${r.source_url?`<a class="btn" target="_blank" href="${esc(r.source_url)}">Open source ↗</a>`:""}</div>`).join("");
+  $("cards").innerHTML=rows.map(r=>`<div class="card"><div><span class="badge">${esc(r.country||"")}</span><span class="badge">${esc(r.work_type||"")}</span><span class="badge">${esc(r.category||"")}</span><span class="badge">${esc(r.status||"")}</span><span class="badge">${esc(r.urgency||"")}</span></div><h3>${esc(r.title||"")}</h3><div class="small"><b>${esc(r.issuer||"")}</b> · ${esc([r.city,r.region].filter(Boolean).join(" / "))} · Ref ${esc(r.reference||"—")}</div><div class="small">Deadline <b>${esc(r.deadline||"—")}</b>${r.remaining_days!=null?" · "+r.remaining_days+" days left":""}</div><div class="small">How it came: <b>${esc(r.source_type||"")}</b> via <b>${esc(r.source_name||"")}</b> (${esc(r.how_found||"")})</div><div class="small">Next action: <b>${esc(r.next_action||"")}</b></div>${r.source_url?`<a class="btn" target="_blank" href="${esc(r.source_url)}">Open source ↗</a>`:""}</div>`).join("");
 }
 
 let queuePage=1, sitePage=1, africaPage=1, gccPage=1,
@@ -381,6 +381,7 @@ function renderQueueTable(baseRows){
     sortableHead("Country","country","queue")+
     sortableHead("Location","city","queue")+
     sortableHead("Opportunity","title","queue")+
+    sortableHead("Type","work_type","queue")+
     sortableHead("Issuer","issuer","queue")+
     sortableHead("Deadline","deadline","queue")+
     sortableHead("Verification","verification_status","queue")+
@@ -394,6 +395,7 @@ function renderQueueTable(baseRows){
      <td>${esc(r.country||"")}</td>
      <td>${esc(r.city||"")}<span class="table-sub">${esc(r.region||"")}</span></td>
      <td class="table-title-cell">${esc(r.title||"")}${r.is_new?' <span class="pill pill-green">NEW</span>':(r.is_updated?' <span class="pill pill-yellow">UPDATED</span>':"")}<span class="table-sub">Ref ${esc(r.reference||"—")}</span></td>
+     <td>${esc(r.work_type||"")}</td>
      <td>${esc(r.issuer||"")}</td>
      <td>${esc(r.deadline||"—")}<span class="table-sub">${r.remaining_days!=null?r.remaining_days+" days left":""}</span></td>
      <td>${pillVerify(r.verification_status)}</td>
@@ -555,7 +557,7 @@ function renderRuns(){
 }
 function renderRegions(){const c=$("regionCountry").value,obj=REGIONS[c]||{};$("regionCards").innerHTML=Object.entries(obj).map(([r,cities])=>`<div class="region"><b>${esc(r)}</b><div class="small" style="margin-top:6px">${cities.map(esc).join(" • ")}</div></div>`).join("")}
 
-["country","status","urgency","verification","sector","search"].forEach(id=>$(id).addEventListener("input",()=>{queuePage=1;render()}));
+["country","status","urgency","verification","workType","search"].forEach(id=>$(id).addEventListener("input",()=>{queuePage=1;render()}));
 ["queueSearch","queueUrgency","queueCountry","queuePageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{queuePage=1;renderQueueTable(filtered())}));
 ["siteSearch","siteCountry","siteWatchState","sitePageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{sitePage=1;renderSites()}));
 ["africaSearch","africaRegion","africaCountry","africaPageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{africaPage=1;renderAfrica()}));

@@ -121,6 +121,54 @@ def is_junk_row(text):
     return False
 
 
+# ------------------------------------------------------- work-type classifier
+WORK_TYPE_NOTE = ("Work type is keyword-estimated from each record's real title/category text, "
+                  "not from any invented field (no source publishes a contract value). Rules in order: "
+                  "maintenance/repair words -> Small project, unless a construction verb is present; "
+                  "construction verbs (construction / EPC / design-build / انشاء) -> Mega project; "
+                  "supply/delivery/purchase words (supply, delivery, توريد، شراء، تأمين) -> Procurement; "
+                  "named major infrastructure (desalination, treatment/power plant, network, pipeline, "
+                  "bridge, highway, roads, airport, محطة معالجة، شبكات، الطرق، جسر) -> Mega project; "
+                  "anything else -> Other works.")
+
+WT_SMALL = re.compile(
+    r"(maintenance|repair|renovat|rehabilitat|refurbish|remodel|"
+    r"cleaning works|paint(?:ing)? works|fencing works|resurfac|upgrad|"
+    r"صيانة|إصلاح|اصلاح|ترميم|تأهيل|تاهيل|تجديد|تنظيف|دهان)", re.I)
+
+WT_MEGA_VERB = re.compile(
+    r"(construction|design\s*(?:and|&|-)?\s*(?:build|construct)|build\s*own\s*operate|\bepc\b|"
+    r"إنشاء|انشاء|تشييد|تصميم وبناء|تصميم وتنفيذ وتشغيل)", re.I)
+
+WT_MEGA_NOUN = re.compile(
+    r"(desalination|(?:water|sewage|treatment|power)\s*(?:treatment\s*)?plant|pumping station|substation|"
+    r"transmission line|interchange|expressway|highway|motorway|bridge|tunnel|airport|harbou?r|"
+    r"refinery|pipelines?|\bnetworks?\b|infrastructure|metro\b|railway|flood|drainage|reservoir|"
+    r"\bdam\b|\broads?\b|intersections?|محطة معالجة|محطة تحلية|محطة كهرباء|محطة ضخ|شبكة|شبكات|جسر|أنفاق|انفاق|"
+    r"الطرق|الطريق|طرق سريع|تقاطعات|مطار|ميناء|مصفاة|خطوط أنابيب|خطوط انابيب|البنية التحتية|بنية تحتية)", re.I)
+
+WT_PROC = re.compile(
+    r"(supply|supplying|delivery|purchase|procurement|provision of|"
+    r"توريد|شراء|تأمين|تامين)", re.I)
+
+
+def classify_work_type(title, category=""):
+    """Transparent keyword heuristic over the record's real title/category text."""
+    t = norm_text(ar_norm(" ".join([title or "", category or ""])))
+    if not t:
+        return "Other works"
+    small, mverb = WT_SMALL.search(t), WT_MEGA_VERB.search(t)
+    if small and not mverb:
+        return "Small project"
+    if mverb:
+        return "Mega project"
+    if WT_PROC.search(t):
+        return "Procurement"
+    if WT_MEGA_NOUN.search(t):
+        return "Mega project"
+    return "Other works"
+
+
 def parse_date(s):
     """Real date strings from the sources -> ISO date, else None."""
     s = norm_text(s)
@@ -253,7 +301,7 @@ def abs_url(base, href):
 
 # ---------------------------------------------------------------- extractors
 def tender_record(**kw):
-    rec = {"id": None, "country": "", "region": "", "city": "", "sector": "", "category": "",
+    rec = {"id": None, "country": "", "region": "", "city": "", "sector": "", "work_type": "", "category": "",
            "title": "", "issuer": "", "reference": "", "deadline": None, "published": None,
            "remaining_days": None, "status": "", "urgency": "", "attention_score": 0,
            "verification_status": "Official", "source_type": "Official / Direct",
@@ -261,6 +309,8 @@ def tender_record(**kw):
            "evidence_rows": 0, "extracted_at": now_iso(), "is_new": False, "is_updated": False,
            "first_seen": now_iso(), "last_seen": now_iso(), "next_action": ""}
     rec.update(kw)
+    if not rec.get("work_type"):
+        rec["work_type"] = classify_work_type(rec.get("title", ""), rec.get("category", ""))
     return rec
 
 
@@ -760,6 +810,7 @@ def run_cycle(args, state):
                             "health_state": h.get("health_state"), "last_checked": h.get("last_checked")}
 
     data = {"generated_at": now_iso(), "watch": watch, "scoring_note": SCORING_NOTE,
+            "work_type_note": WORK_TYPE_NOTE,
             "tenders": all_records, "health": health, "gcc": sources.get("gcc") or [],
             "africa": sources.get("africa") or [], "regions": sources.get("regions") or {},
             "runs": runs[-200:], "authorities_without_url": sources.get("authorities_without_url") or [],
