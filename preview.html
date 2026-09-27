@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Construction Opportunity Command Center</title>
+<style>
+:root{--bg:#09111f;--panel:#121d33;--text:#eef4ff;--muted:#9db0cf;--line:#263654;--green:#28c76f;--red:#ff5d5d;--amber:#ffc968}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(180deg,#09111f,#0b1323);color:var(--text)}
+.wrap{max-width:1600px;margin:auto;padding:22px}.hero{padding:24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(135deg,#172544,#10192e)}
+.hero h1{margin:0;font-size:34px}.hero p{margin:7px 0 0;color:var(--muted)}
+.timergrid,.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}.kpis{grid-template-columns:repeat(5,1fr)}
+.timer,.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}.timer small,.kpi small{color:var(--muted)}.timer strong,.kpi strong{display:block;margin-top:5px;font-size:24px}
+.toolbar{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:14px 0}.toolbar input,.toolbar select{width:100%;padding:11px;border-radius:10px;background:#0a1325;color:var(--text);border:1px solid var(--line)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}.tabbtn{padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:#111d35;color:var(--text);cursor:pointer}.tabbtn.active{background:#234578}.tab{display:none}.tab.active{display:block}
+.card{padding:16px;border:1px solid var(--line);background:var(--panel);border-radius:16px;margin-bottom:12px}.small{color:var(--muted);font-size:13px}.badge{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--line);font-size:12px;margin-right:5px}
+.tablewrap{overflow:auto;max-height:700px;border:1px solid var(--line);border-radius:14px}table{width:100%;border-collapse:collapse;background:var(--panel)}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:13px}th{position:sticky;top:0;background:#172544}
+.ok{color:var(--green);font-weight:900;font-size:18px}.bad{color:var(--red);font-weight:900;font-size:18px}.btn{display:inline-block;text-decoration:none;background:#1d5da6;color:white;padding:8px 11px;border-radius:8px;margin-top:8px}.region{padding:12px;border:1px solid var(--line);background:var(--panel);border-radius:12px;margin-bottom:10px}
+@media(max-width:900px){.toolbar{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(2,1fr)}.timergrid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){
+ .wrap{padding:10px}.hero{padding:16px;border-radius:16px}.hero h1{font-size:24px;line-height:1.2}.hero p{font-size:13px}
+ .toolbar,.kpis,.timergrid{grid-template-columns:1fr}.tabbtn{flex:1 1 calc(50% - 8px);font-size:13px;padding:9px 8px}
+ .card{padding:12px}.small{font-size:12px}.badge{font-size:11px}
+ table{min-width:760px}th,td{font-size:12px;padding:8px}.timer strong,.kpi strong{font-size:21px}
+}
+
+.brand-strip{
+  position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:99999;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:9px 16px;border:1px solid rgba(255,215,64,.42);border-radius:999px;
+  background:linear-gradient(135deg,rgba(9,17,31,.95),rgba(19,28,49,.97));
+  box-shadow:0 0 0 1px rgba(255,255,255,.03) inset,0 0 18px rgba(255,215,64,.18),0 10px 35px rgba(0,0,0,.40);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  color:#dbe7ff;font-size:12px;letter-spacing:.02em;white-space:nowrap;
+}
+.brand-strip::before{
+  content:"";width:7px;height:7px;border-radius:50%;background:#ffd84d;
+  box-shadow:0 0 8px rgba(255,216,77,.95),0 0 16px rgba(255,216,77,.68);
+}
+.brand-name{
+  color:#ffd84d;font-weight:900;
+  text-shadow:0 0 6px rgba(255,216,77,.78),0 0 14px rgba(255,216,77,.50),0 0 26px rgba(255,190,0,.24);
+}
+.brand-sep{opacity:.45}
+@media(max-width:640px){
+  .brand-strip{bottom:8px;max-width:calc(100vw - 18px);padding:8px 11px;font-size:10.5px;gap:5px;overflow:hidden;text-overflow:ellipsis}
+}
+
+
+/* ===== Professional dynamic tables ===== */
+.table-panel{border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.14)}
+.table-tools{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.018);flex-wrap:wrap}
+.table-tools-left,.table-tools-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.table-search,.table-select{background:#0a1325;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 10px;outline:none}
+.table-search{min-width:240px}
+.table-count{font-size:12px;color:var(--muted)}
+.pro-table{width:100%;border-collapse:separate;border-spacing:0;min-width:980px}
+.pro-table th{position:sticky;top:0;z-index:2;background:#172544;color:#eaf1ff;padding:11px 10px;border-bottom:1px solid var(--line);font-size:12px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;cursor:pointer;user-select:none}
+.pro-table th:hover{background:#1d3156}
+.pro-table th .sortmark{opacity:.45;margin-left:5px}
+.pro-table td{padding:11px 10px;border-bottom:1px solid rgba(38,54,84,.78);font-size:13px;vertical-align:top}
+.pro-table tbody tr:nth-child(even){background:rgba(255,255,255,.012)}
+.pro-table tbody tr:hover{background:rgba(80,130,220,.08)}
+.row-critical{box-shadow:inset 3px 0 0 #ff5d5d}
+.row-high{box-shadow:inset 3px 0 0 #ff9f43}
+.row-medium{box-shadow:inset 3px 0 0 #ffd166}
+.row-ok{box-shadow:inset 3px 0 0 #28c76f}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid var(--line);white-space:nowrap}
+.pill-red{color:#ffaaaa;background:rgba(255,93,93,.10);border-color:rgba(255,93,93,.28)}
+.pill-orange{color:#ffc28c;background:rgba(255,159,67,.10);border-color:rgba(255,159,67,.28)}
+.pill-yellow{color:#ffe58f;background:rgba(255,209,102,.10);border-color:rgba(255,209,102,.28)}
+.pill-green{color:#93f0bb;background:rgba(40,199,111,.10);border-color:rgba(40,199,111,.28)}
+.pill-blue{color:#a8c9ff;background:rgba(74,130,255,.10);border-color:rgba(74,130,255,.28)}
+.scorebar{width:92px;height:7px;border-radius:999px;background:#263654;overflow:hidden;margin-top:5px}
+.scorebar span{display:block;height:100%;background:linear-gradient(90deg,#5ba8ff,#ffd84d);border-radius:999px}
+.pagination{display:flex;gap:6px;align-items:center;justify-content:flex-end;padding:10px 12px;border-top:1px solid var(--line)}
+.pagebtn{border:1px solid var(--line);background:#0f1930;color:var(--text);padding:7px 10px;border-radius:8px;cursor:pointer}
+.pagebtn:disabled{opacity:.35;cursor:not-allowed}
+.pageinfo{font-size:12px;color:var(--muted);min-width:110px;text-align:center}
+.urlbtn{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:8px;background:#174f91;color:white;text-decoration:none;font-size:12px;white-space:nowrap}
+.table-title-cell{font-weight:700;line-height:1.28;max-width:330px}
+.table-sub{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+@media(max-width:640px){
+  .table-tools{align-items:stretch}
+  .table-tools-left,.table-tools-right{width:100%}
+  .table-search{min-width:0;width:100%}
+  .table-select{flex:1}
+  .tablewrap{max-height:70vh}
+  .pro-table{min-width:900px}
+}
+
+</style></head>
+<body><div class="wrap">
+<div class="hero"><h1>🏗️ Construction Opportunity Command Center</h1><p>MENA + GCC + Africa Strategic Infrastructure • Where • What • Who • Source path • Urgency • Reliability • Next action</p></div>
+
+<div class="timergrid">
+ <div class="timer"><small>Last checked</small><strong id="lastChecked">--</strong></div>
+ <div class="timer"><small>Next check in</small><strong id="countdown">--:--:--</strong></div>
+ <div class="timer"><small>Watcher cycle</small><strong>60 min</strong></div>
+</div>
+
+<div class="toolbar">
+<select id="country"><option value="">All countries</option></select>
+<select id="status"><option value="">All statuses</option></select>
+<select id="urgency"><option value="">All urgency</option></select>
+<select id="verification"><option value="">All verification</option></select>
+<select id="sector"><option value="">All sectors</option></select>
+<input id="search" placeholder="Search title, issuer, city, reference...">
+</div>
+
+<div class="kpis">
+<div class="kpi"><small>Visible</small><strong id="kTotal">0</strong></div>
+<div class="kpi"><small>Open</small><strong id="kOpen">0</strong></div>
+<div class="kpi"><small>New / Updated</small><strong id="kChanged">0</strong></div>
+<div class="kpi"><small>High / Critical</small><strong id="kUrgent">0</strong></div>
+<div class="kpi"><small>Sites watched</small><strong id="kSites">0</strong></div>
+</div>
+
+<div class="tabs">
+<button class="tabbtn active" data-tab="exec">Executive</button>
+<button class="tabbtn" data-tab="queue">Action Queue</button>
+<button class="tabbtn" data-tab="opps">Opportunities</button>
+<button class="tabbtn" data-tab="sites">Watched Sites</button>
+<button class="tabbtn" data-tab="gcc">GCC Authorities</button>
+<button class="tabbtn" data-tab="africa">Africa Authorities</button>
+<button class="tabbtn" data-tab="health">Coverage Health</button>
+<button class="tabbtn" data-tab="where">Where</button>
+</div>
+
+<section id="exec" class="tab active"><div id="execContent"></div></section>
+<section id="queue" class="tab">
+<div class="table-panel">
+  <div class="table-tools">
+    <div class="table-tools-left">
+      <input id="queueSearch" class="table-search" placeholder="Search opportunity, issuer, city, action...">
+      <select id="queueUrgency" class="table-select"><option value="">All urgency</option></select>
+      <select id="queueCountry" class="table-select"><option value="">All countries</option></select>
+    </div>
+    <div class="table-tools-right">
+      <span id="queueCount" class="table-count"></span>
+      <select id="queuePageSize" class="table-select"><option>10</option><option selected>25</option><option>50</option></select>
+    </div>
+  </div>
+  <div class="tablewrap"><table id="queueTable" class="pro-table"></table></div>
+  <div class="pagination"><button id="queuePrev" class="pagebtn">‹ Prev</button><span id="queuePageInfo" class="pageinfo"></span><button id="queueNext" class="pagebtn">Next ›</button></div>
+</div>
+</section>
+<section id="opps" class="tab"><div id="cards"></div></section>
+<section id="sites" class="tab">
+<div class="table-panel">
+  <div class="table-tools">
+    <div class="table-tools-left">
+      <input id="siteSearch" class="table-search" placeholder="Search client, watched site or URL...">
+      <select id="siteCountry" class="table-select"><option value="">All countries</option></select>
+      <select id="siteWatchState" class="table-select"><option value="">All states</option><option value="yes">✅ Watched</option><option value="no">❌ Not watched</option></select>
+    </div>
+    <div class="table-tools-right">
+      <span id="siteCount" class="table-count"></span>
+      <select id="sitePageSize" class="table-select"><option>10</option><option selected>25</option><option>50</option></select>
+    </div>
+  </div>
+  <div class="tablewrap"><table id="sitesTable" class="pro-table"></table></div>
+  <div class="pagination"><button id="sitePrev" class="pagebtn">‹ Prev</button><span id="sitePageInfo" class="pageinfo"></span><button id="siteNext" class="pagebtn">Next ›</button></div>
+</div>
+</section>
+
+
+<section id="gcc" class="tab">
+<div class="table-panel">
+  <div class="table-tools">
+    <div class="table-tools-left">
+      <input id="gccSearch" class="table-search" placeholder="Search ministry, authority, developer, scope...">
+      <select id="gccCountry" class="table-select"><option value="">All GCC countries</option></select>
+      <select id="gccType" class="table-select"><option value="">All authority types</option></select>
+    </div>
+    <div class="table-tools-right">
+      <span id="gccCount" class="table-count"></span>
+      <select id="gccPageSize" class="table-select"><option>10</option><option selected>25</option><option>50</option></select>
+    </div>
+  </div>
+  <div class="tablewrap"><table id="gccTable" class="pro-table"></table></div>
+  <div class="pagination"><button id="gccPrev" class="pagebtn">‹ Prev</button><span id="gccPageInfo" class="pageinfo"></span><button id="gccNext" class="pagebtn">Next ›</button></div>
+</div>
+</section>
+
+<section id="africa" class="tab">
+<div class="table-panel">
+  <div class="table-tools">
+    <div class="table-tools-left">
+      <input id="africaSearch" class="table-search" placeholder="Search authority, country, scope...">
+      <select id="africaRegion" class="table-select"><option value="">All African regions</option></select>
+      <select id="africaCountry" class="table-select"><option value="">All countries</option></select>
+    </div>
+    <div class="table-tools-right">
+      <span id="africaCount" class="table-count"></span>
+      <select id="africaPageSize" class="table-select"><option>10</option><option selected>25</option><option>50</option></select>
+    </div>
+  </div>
+  <div class="tablewrap"><table id="africaTable" class="pro-table"></table></div>
+  <div class="pagination"><button id="africaPrev" class="pagebtn">‹ Prev</button><span id="africaPageInfo" class="pageinfo"></span><button id="africaNext" class="pagebtn">Next ›</button></div>
+</div>
+</section>
+
+<section id="health" class="tab"><div class="tablewrap"><table id="healthTable"></table></div></section>
+<section id="where" class="tab"><select id="regionCountry" style="padding:10px;background:#0a1325;color:white;border:1px solid var(--line);border-radius:10px;margin-bottom:12px"></select><div id="regionCards"></div></section>
+</div>
+
+<div class="brand-strip">
+  <span>Engineered &amp; Developed</span>
+  <span class="brand-sep">|</span>
+  <span class="brand-name">Eng. Ahmed Labib</span>
+</div>
+
+<script>
+const TENDERS=[{"id": "SA-001", "country": "Saudi Arabia", "region": "Riyadh", "city": "Riyadh", "sector": "Public", "category": "Buildings / MEP", "title": "Civil, architectural, electrical and mechanical works", "issuer": "Public Entity", "reference": "SA-2026-001", "procurement_type": "Tender", "published_date": "2026-09-18", "deadline": "2026-10-15", "status": "Open", "value": null, "currency": "SAR", "eligibility": "As per tender documents", "scope": "Civil, architectural, electrical and mechanical works.", "packages": ["Civil", "Architectural", "Electrical", "Mechanical"], "source_name": "Etimad", "source_url": "https://tenders.etimad.sa/", "last_checked": "2026-09-18T04:10:00+03:00", "is_new": true, "is_updated": false, "verification_status": "Official", "source_type": "Official / Direct", "secondary_source_urls": [], "days_left": 27, "urgency": "Normal", "attention_score": 50, "next_action": "Review scope, eligibility and documents"}, {"id": "JO-001", "country": "Jordan", "region": "Madaba", "city": "Madaba", "sector": "Public", "category": "Roads / Intersection", "title": "Construction and widening of road intersection", "issuer": "Ministry of Public Works and Housing", "reference": "Sh/2026/43", "procurement_type": "Tender", "published_date": "2026-09-16", "deadline": "2026-09-30", "status": "Open", "value": null, "currency": "JOD", "eligibility": "As per tender documents", "scope": "Intersection construction, widening and traffic signal works.", "packages": ["Roadworks", "Traffic", "Civil"], "source_name": "Jordan MPWH", "source_url": "https://www.mpwh.gov.jo/Ar/Modules/Tenders", "last_checked": "2026-09-18T04:10:00+03:00", "is_new": false, "is_updated": true, "verification_status": "Official", "source_type": "Official / Direct", "secondary_source_urls": [], "days_left": 12, "urgency": "Medium", "attention_score": 55, "next_action": "Review scope, eligibility and documents"}, {"id": "OM-001", "country": "Oman", "region": "Muscat", "city": "Muscat", "sector": "Public", "category": "Water Infrastructure", "title": "Construction supervision of water distribution network", "issuer": "Nama Water Services", "reference": "T/OW/T/10031/2026/2026", "procurement_type": "Consultancy Tender", "published_date": "2026-07-05", "deadline": "2026-09-21", "status": "Open", "value": null, "currency": "OMR", "eligibility": "Registered local firms and specialized international companies", "scope": "Construction supervision of water distribution network works.", "packages": ["Supervision", "Water Networks"], "source_name": "Nama Water Services", "source_url": "https://nws.nama.om/", "last_checked": "2026-09-18T04:10:00+03:00", "is_new": false, "is_updated": false, "verification_status": "Official", "source_type": "Official / Direct", "secondary_source_urls": [], "days_left": 3, "urgency": "Critical", "attention_score": 55, "next_action": "Open documents now; assign estimator + technical reviewer"}, {"id": "EG-001", "country": "Egypt", "region": "Cairo", "city": "New Cairo", "sector": "Public", "category": "Residential / Infrastructure", "title": "Residential and infrastructure package", "issuer": "New Urban Communities Authority", "reference": "EG-DEMO-001", "procurement_type": "Tender", "published_date": "2026-09-10", "deadline": "2026-10-08", "status": "Open", "value": null, "currency": "EGP", "eligibility": "Contractor classification as stated in tender documents", "scope": "Residential buildings with associated infrastructure and external works.", "packages": ["Residential", "Infrastructure", "External Works"], "source_name": "NUCA", "source_url": "https://www.newcities.gov.eg/", "last_checked": "2026-09-18T04:10:00+03:00", "is_new": true, "is_updated": false, "verification_status": "Official", "source_type": "Official / Direct", "secondary_source_urls": [], "days_left": 20, "urgency": "Normal", "attention_score": 50, "next_action": "Review scope, eligibility and documents"}, {"id": "LY-001", "country": "Libya", "region": "Tripoli", "city": "Tripoli", "sector": "Public", "category": "Infrastructure", "title": "Urban infrastructure rehabilitation package", "issuer": "Development Authority", "reference": "LY-DEMO-001", "procurement_type": "EOI", "published_date": "2026-09-09", "deadline": "2026-10-12", "status": "Open", "value": null, "currency": "LYD", "eligibility": "As per publicly issued notice", "scope": "Urban roads, utilities, drainage and associated civil works.", "packages": ["Roads", "Utilities", "Drainage"], "source_name": "Development Authority", "source_url": "https://nda.gov.ly/", "last_checked": "2026-09-18T04:10:00+03:00", "is_new": false, "is_updated": false, "verification_status": "Official", "source_type": "Official / Direct", "secondary_source_urls": [], "days_left": 24, "urgency": "Normal", "attention_score": 25, "next_action": "Monitor and schedule review"}, {"id": "SY-001", "country": "Syria", "region": "Damascus", "city": "Damascus", "sector": "Public", "category": "Building Rehabilitation", "title": "Public building rehabilitation works", "issuer": "Public Works Entity", "reference": "SY-DEMO-001", "procurement_type": "Tender", "published_date": "2026-09-08", "deadline": "2026-10-05", "status": "Open", "value": null, "currency": "SYP", "eligibility": "As per public tender documents", "scope": "Structural, architectural and MEP rehabilitation works.", "packages": ["Structural", "Architectural", "MEP"], "source_name": "Public Procurement Source", "source_url": "https://www.moct.gov.sy/", "last_checked": "2026-09-18T04:10:00+03:00", "is_new": false, "is_updated": false, "verification_status": "Official", "source_type": "Official / Direct", "secondary_source_urls": [], "days_left": 17, "urgency": "Normal", "attention_score": 25, "next_action": "Monitor and schedule review"}, {"id": "SA-P-001", "country": "Saudi Arabia", "region": "Makkah", "city": "Jeddah", "sector": "Private", "category": "Commercial / Mixed Use", "title": "Mixed-use development contractor prequalification", "issuer": "Private Developer", "reference": "PQ-2026-07", "procurement_type": "Prequalification", "published_date": "2026-09-14", "deadline": "2026-10-01", "status": "Open", "value": null, "currency": "SAR", "eligibility": "Prequalification criteria and vendor registration required", "scope": "Main contractor prequalification for mixed-use commercial and residential development.", "packages": ["Main Contract", "Civil", "MEP", "Fit-out"], "source_name": "Corporate Vendor Portal", "source_url": "https://example.com/", "last_checked": "2026-09-18T04:10:00+03:00", "is_new": true, "is_updated": false, "verification_status": "Official", "source_type": "Official / Direct", "secondary_source_urls": [], "days_left": 13, "urgency": "Medium", "attention_score": 60, "next_action": "Check PQ criteria and vendor registration"}, {"id": "JO-C-001", "country": "Jordan", "region": "Mafraq", "city": "Mafraq", "sector": "Public", "category": "Bridge", "title": "Supply and installation of steel bridge", "issuer": "Ministry of Public Works and Housing", "reference": "Sh/2026/42", "procurement_type": "Tender", "published_date": "2026-08-01", "deadline": "2026-09-01", "status": "Closed", "value": null, "currency": "JOD", "eligibility": "As per tender documents", "scope": "Supply and installation of a steel bridge on an international road corridor.", "packages": ["Bridge", "Steel", "Civil"], "source_name": "Jordan MPWH", "source_url": "https://www.mpwh.gov.jo/", "last_checked": "2026-09-18T04:10:00+03:00", "is_new": false, "is_updated": false, "verification_status": "Official", "source_type": "Official / Direct", "secondary_source_urls": [], "days_left": -17, "urgency": "Inactive", "attention_score": 20, "next_action": "Archive / monitor award or re-tender"}], HEALTH=[{"country": "Saudi Arabia", "source_name": "Etimad", "source_class": "National Procurement", "coverage_status": "Priority / Verified", "health_state": "checked successfully", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730573+00:00", "notes": "", "client_name": "Etimad", "site_url": "https://tenders.etimad.sa/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "Riyadh Municipality", "source_class": "Municipality", "coverage_status": "Watched", "health_state": "watched", "verification": "", "last_checked": "2026-09-18T18:48:17.730589+00:00", "notes": "", "client_name": "Riyadh Municipality", "site_url": "https://www.alriyadh.gov.sa/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "Taif Municipality", "source_class": "Municipality", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730593+00:00", "notes": "", "client_name": "Taif Municipality", "site_url": "https://www.taifcity.gov.sa/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "Royal Commission for Riyadh City", "source_class": "Royal Commission", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730596+00:00", "notes": "", "client_name": "Royal Commission for Riyadh City", "site_url": "https://www.rcrc.gov.sa/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "Royal Commission for Jubail and Yanbu", "source_class": "Royal Commission", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730598+00:00", "notes": "", "client_name": "Royal Commission for Jubail and Yanbu", "site_url": "https://www.rcjy.gov.sa/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "National Water Company", "source_class": "Water Utility", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Official / Corporate", "last_checked": "2026-09-18T18:48:17.730601+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "National Water Company", "site_url": "https://www.nwc.com.sa/", "watched_last_turn": true}, {"country": "Egypt", "source_name": "Government Procurement Portal", "source_class": "National Procurement", "coverage_status": "Priority", "health_state": "checked successfully", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730604+00:00", "notes": "", "client_name": "Government Procurement Portal", "site_url": "https://etenders.gov.eg/", "watched_last_turn": true}, {"country": "Egypt", "source_name": "NUCA", "source_class": "Urban Development", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730606+00:00", "notes": "", "client_name": "NUCA", "site_url": "https://www.newcities.gov.eg/", "watched_last_turn": true}, {"country": "Oman", "source_name": "Tender Board eTendering", "source_class": "National Procurement", "coverage_status": "Verified", "health_state": "checked successfully", "verification": "", "last_checked": "2026-09-18T18:48:17.730608+00:00", "notes": "", "client_name": "Tender Board eTendering", "site_url": "https://etendering.tenderboard.gov.om/", "watched_last_turn": true}, {"country": "Oman", "source_name": "Nama Water Services", "source_class": "Water Utility", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Official / Corporate", "last_checked": "2026-09-18T18:48:17.730610+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "Nama Water Services", "site_url": "https://nws.nama.om/", "watched_last_turn": true}, {"country": "Libya", "source_name": "National Development Agency", "source_class": "Development / Reconstruction", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730613+00:00", "notes": "", "client_name": "National Development Agency", "site_url": "https://nda.gov.ly/", "watched_last_turn": true}, {"country": "Jordan", "source_name": "Government Tenders Department", "source_class": "National Tenders", "coverage_status": "Verified", "health_state": "checked successfully", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730616+00:00", "notes": "", "client_name": "Government Tenders Department", "site_url": "https://gtd.gov.jo/", "watched_last_turn": true}, {"country": "Jordan", "source_name": "Ministry of Public Works & Housing", "source_class": "Public Works", "coverage_status": "Verified", "health_state": "checked successfully", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730618+00:00", "notes": "", "client_name": "Ministry of Public Works & Housing", "site_url": "https://www.mpwh.gov.jo/", "watched_last_turn": true}, {"country": "Syria", "source_name": "Public Procurement / Public Works Sources", "source_class": "Public Procurement", "coverage_status": "Partial", "health_state": "partial / fragmented", "verification": "", "last_checked": "2026-09-18T18:48:17.730621+00:00", "notes": "", "client_name": "Public Procurement / Public Works Sources", "site_url": "https://www.moct.gov.sy/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "Riyadh Municipality / Amanat Al Riyadh", "source_class": "Municipality", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730623+00:00", "notes": "", "client_name": "Riyadh Municipality / Amanat Al Riyadh", "site_url": "https://www.alriyadh.gov.sa/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "Royal Commission for AlUla", "source_class": "Royal Commission", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730625+00:00", "notes": "", "client_name": "Royal Commission for AlUla", "site_url": "https://www.rcu.gov.sa/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "NEOM", "source_class": "Giga Project / Vendor Portal", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Direct corporate", "last_checked": "2026-09-18T18:48:17.730627+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "NEOM", "site_url": "https://www.neom.com/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "Red Sea Global", "source_class": "Developer / Vendor Portal", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Direct corporate", "last_checked": "2026-09-18T18:48:17.730630+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "Red Sea Global", "site_url": "https://www.redseaglobal.com/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "ROSHN Group", "source_class": "Developer / Vendor Portal", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Direct corporate", "last_checked": "2026-09-18T18:48:17.730632+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "ROSHN Group", "site_url": "https://www.roshn.sa/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "Saudi Aramco", "source_class": "Industrial / Vendor Portal", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Direct corporate", "last_checked": "2026-09-18T18:48:17.730634+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "Saudi Aramco", "site_url": "https://www.aramco.com/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "Saudi Electricity Company", "source_class": "Power Utility", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Official / Corporate", "last_checked": "2026-09-18T18:48:17.730637+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "Saudi Electricity Company", "site_url": "https://www.se.com.sa/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "Saudi Arabia Railways", "source_class": "Rail / Logistics", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Official / Corporate", "last_checked": "2026-09-18T18:48:17.730639+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "Saudi Arabia Railways", "site_url": "https://www.sar.com.sa/", "watched_last_turn": true}, {"country": "Saudi Arabia", "source_name": "MODON", "source_class": "Industrial Cities", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730641+00:00", "notes": "", "client_name": "MODON", "site_url": "https://modon.gov.sa/", "watched_last_turn": true}, {"country": "Oman", "source_name": "Oman Tender Board eTendering", "source_class": "National Procurement", "coverage_status": "Priority / Verified", "health_state": "checked successfully", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730643+00:00", "notes": "", "client_name": "Oman Tender Board eTendering", "site_url": "https://etendering.tenderboard.gov.om/", "watched_last_turn": true}, {"country": "Oman", "source_name": "OQ Group", "source_class": "Energy / Vendor Portal", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Direct corporate", "last_checked": "2026-09-18T18:48:17.730646+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "OQ Group", "site_url": "https://oq.com/", "watched_last_turn": true}, {"country": "Oman", "source_name": "Petroleum Development Oman", "source_class": "Oil & Gas / Vendor Portal", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Direct corporate", "last_checked": "2026-09-18T18:48:17.730648+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "Petroleum Development Oman", "site_url": "https://www.pdo.co.om/", "watched_last_turn": true}, {"country": "Oman", "source_name": "ASYAD Group", "source_class": "Logistics / Vendor Portal", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Direct corporate", "last_checked": "2026-09-18T18:48:17.730650+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "ASYAD Group", "site_url": "https://asyad.om/", "watched_last_turn": true}, {"country": "Oman", "source_name": "OPAZ / SEZAD", "source_class": "Special Economic Zones", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730653+00:00", "notes": "", "client_name": "OPAZ / SEZAD", "site_url": "https://opaz.gov.om/", "watched_last_turn": true}, {"country": "Oman", "source_name": "OMRAN Group", "source_class": "Tourism / Developer", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Direct corporate", "last_checked": "2026-09-18T18:48:17.730655+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "OMRAN Group", "site_url": "https://www.omran.om/", "watched_last_turn": true}, {"country": "Oman", "source_name": "Oman Airports", "source_class": "Airports", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Official / Corporate", "last_checked": "2026-09-18T18:48:17.730657+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "Oman Airports", "site_url": "https://www.omanairports.co.om/", "watched_last_turn": true}, {"country": "Jordan", "source_name": "JONEPS", "source_class": "National e-Procurement", "coverage_status": "Priority", "health_state": "checked successfully", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730660+00:00", "notes": "", "client_name": "JONEPS", "site_url": "https://joneps.gov.jo/", "watched_last_turn": true}, {"country": "Jordan", "source_name": "Aqaba Development Corporation", "source_class": "Development / Port / Logistics", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Official / Corporate", "last_checked": "2026-09-18T18:48:17.730662+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "Aqaba Development Corporation", "site_url": "https://www.adc.jo/", "watched_last_turn": true}, {"country": "Jordan", "source_name": "ASEZA", "source_class": "Special Economic Zone", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730665+00:00", "notes": "", "client_name": "ASEZA", "site_url": "https://aseza.jo/", "watched_last_turn": true}, {"country": "Jordan", "source_name": "NEPCO", "source_class": "Power Utility", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Official / Corporate", "last_checked": "2026-09-18T18:48:17.730667+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "NEPCO", "site_url": "https://www.nepco.com.jo/", "watched_last_turn": true}, {"country": "Jordan", "source_name": "Miyahuna", "source_class": "Water Utility", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Official / Corporate", "last_checked": "2026-09-18T18:48:17.730669+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "Miyahuna", "site_url": "https://www.miyahuna.com.jo/", "watched_last_turn": true}, {"country": "Libya", "source_name": "Libyan Tenders", "source_class": "Commercial Tender Aggregator", "coverage_status": "Priority Discovery", "health_state": "aggregator only", "verification": "Aggregator lead — verify issuer", "last_checked": "2026-09-18T18:48:17.730671+00:00", "notes": "", "client_name": "Libyan Tenders", "site_url": "https://libyantenders.ly/", "watched_last_turn": true}, {"country": "Libya", "source_name": "National Oil Corporation", "source_class": "Oil & Gas", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Official / Corporate", "last_checked": "2026-09-18T18:48:17.730673+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "National Oil Corporation", "site_url": "https://noc.ly/", "watched_last_turn": true}, {"country": "Libya", "source_name": "General Electricity Company of Libya", "source_class": "Power Utility", "coverage_status": "Watched", "health_state": "public surface watched; login may be required", "verification": "Official / Corporate", "last_checked": "2026-09-18T18:48:17.730675+00:00", "notes": "Login/private invitation areas are not counted as fully covered.", "client_name": "General Electricity Company of Libya", "site_url": "https://www.gecol.ly/", "watched_last_turn": true}, {"country": "Egypt", "source_name": "Holding Company for Water & Wastewater", "source_class": "Water Utility", "coverage_status": "Watched", "health_state": "watched", "verification": "Official", "last_checked": "2026-09-18T18:48:17.730678+00:00", "notes": "", "client_name": "Holding Company for Water & Wastewater", "site_url": "https://www.hcww.com.eg/", "watched_last_turn": true}, {"country": "Syria", "source_name": "Domestic Public Procurement Sources", "source_class": "Government / Entity Direct", "coverage_status": "Partial / Fragmented", "health_state": "partial / fragmented", "verification": "Official where available", "last_checked": "2026-09-18T18:48:17.730680+00:00", "notes": "", "client_name": "Domestic Public Procurement Sources", "site_url": "https://www.moct.gov.sy/", "watched_last_turn": true}, {"country": "Syria", "source_name": "UNGM", "source_class": "International Procurement", "coverage_status": "Priority for aid-funded works", "health_state": "checked successfully", "verification": "Official international", "last_checked": "2026-09-18T18:48:17.730682+00:00", "notes": "", "client_name": "UNGM", "site_url": "https://www.ungm.org/", "watched_last_turn": true}, {"country": "Syria", "source_name": "UNOPS", "source_class": "International Procurement", "coverage_status": "Watched", "health_state": "watched", "verification": "Official international", "last_checked": "2026-09-18T18:48:17.730684+00:00", "notes": "", "client_name": "UNOPS", "site_url": "https://www.unops.org/business-opportunities", "watched_last_turn": true}], REGIONS={"Saudi Arabia": {"Riyadh Region": ["Riyadh", "Al-Saih", "Ad-Dir'iyah", "Wadi Al-Dawasir", "Ad-Dawadmi", "Majmaah"], "Makkah Region": ["Makkah", "Jeddah", "Taif", "Rabigh", "Al-Qunfudhah"], "Eastern Province": ["Dammam", "Hofuf", "Al-Mubarraz", "Jubail", "Khobar", "Dhahran", "Qatif"], "Madinah Region": ["Madinah", "Yanbu", "AlUla"], "Asir Region": ["Abha", "Khamis Mushait", "Bareq", "Ahad Rafidah"], "Al-Qassim Region": ["Buraydah", "Unaizah", "Ar Rass"], "Tabuk Region": ["Tabuk", "Umluj", "Duba"], "Jazan Region": ["Jizan", "Sabya", "Abu Arish"], "Hail Region": ["Hail"], "Najran Region": ["Najran"], "Al-Jouf Region": ["Sakaka", "Qurayyat", "Dumat al-Jandal"], "Northern Borders Region": ["Arar", "Rafha", "Turaif"], "Al-Baha Region": ["Al-Baha"]}, "Oman": {"Muscat Governorate": ["Muscat", "Seeb", "Muttrah", "Bawshar", "Amerat", "Qurayyat"], "Dhofar Governorate": ["Salalah", "Taqah", "Mirbat", "Thumrait", "Sadah"], "Musandam Governorate": ["Khasab", "Dibba", "Bukha", "Madha"], "Al Buraimi Governorate": ["Al Buraimi", "Mahdah", "Al Sunaynah"], "Ad Dakhiliyah Governorate": ["Nizwa", "Bahla", "Samail", "Izki", "Adam", "Al Hamra"], "Al Batinah North Governorate": ["Sohar", "Al Khaburah", "Saham", "Shinas", "Liwa", "Al Suwayq"], "Al Batinah South Governorate": ["Rustaq", "Barka", "Al Musanaah", "Nakhal", "Al Awabi"], "Ash Sharqiyah North Governorate": ["Ibra", "Al Mudhaibi", "Bidiya", "Dima Wattanyeen", "Wadi Bani Khalid"], "Ash Sharqiyah South Governorate": ["Sur", "Jalan Bani Bu Ali", "Jalan Bani Bu Hassan", "Masirah Island"], "Ad Dhahirah Governorate": ["Ibri", "Yanqul", "Dhank"], "Al Wusta Governorate": ["Haima", "Duqm", "Mahout", "Al Jazir"]}, "Jordan": {"North Region": ["Irbid", "Ajloun", "Jerash", "Mafraq"], "Central Region": ["Amman", "Zarqa", "Balqa / Salt", "Madaba"], "South Region": ["Aqaba", "Ma'an", "Karak", "Tafileh"]}, "Libya": {"Tripolitania / Western Libya": ["Tripoli", "Misrata", "Zawiya", "Gharyan", "Khoms", "Bani Walid", "Tarhuna", "Zuwara"], "Cyrenaica / Eastern Libya": ["Benghazi", "Tobruk", "Bayda", "Derna", "Ajdabiya", "Marj"], "Fezzan / Southern Libya": ["Sebha", "Murzuk", "Ubari", "Ghat", "Brak"]}, "Syria": {"Governorates": ["Damascus", "Rif Dimashq", "Homs", "Hama", "Al-Suwayda", "Aleppo", "Raqqa", "Deir ez-Zor", "Al-Hasakah", "Latakia", "Tartus", "Daraa", "Quneitra", "Idlib"]}, "Egypt": {"Coverage": ["All governorates", "All NUCA new cities", "All major municipalities", "All public universities", "All water/wastewater companies", "All major public/private developers"]}};
+const AFRICA=[{"region_group": "North Africa", "country": "Libya", "name": "Transportation Projects Execution Authority", "local_name": "جهاز تنفيذ مشروعات المواصلات", "type": "Transport Infrastructure", "scope": "Highways, major bridges, airports, ports, transport infrastructure", "url": "", "priority": "Priority"}, {"region_group": "North Africa", "country": "Libya", "name": "Housing and Utilities Projects Execution Authority", "local_name": "جهاز تنفيذ مشروعات الإسكان والمرافق", "type": "Housing / Utilities / Municipal Infrastructure", "scope": "Water, wastewater, utilities, internal roads, integrated infrastructure", "url": "", "priority": "Priority"}, {"region_group": "North Africa", "country": "Libya", "name": "Organization for Development of Administrative Centres (ODAC)", "local_name": "جهاز تنمية وتطوير المراكز الإدارية", "type": "Public Buildings / Development", "scope": "Administrative complexes, hospitals, universities and major public construction", "url": "", "priority": "Priority"}, {"region_group": "North Africa", "country": "Libya", "name": "Libya Development and Reconstruction Fund", "local_name": "صندوق التنمية وإعادة إعمار ليبيا", "type": "Reconstruction / Strategic Projects", "scope": "Strategic reconstruction in eastern, southern and central Libya; roads, bridges, urban corridors and public facilities", "url": "", "priority": "Priority"}, {"region_group": "North Africa", "country": "Libya", "name": "Southern Development Authority", "local_name": "جهاز تنمية وتطوير الجنوب", "type": "Regional Development", "scope": "Southern infrastructure and public-service projects", "url": "", "priority": "Priority"}, {"region_group": "North Africa", "country": "Libya", "name": "Local Municipal Councils", "local_name": "البلديات المحلية", "type": "Municipal Works", "scope": "Local roads, lighting, parks, municipal maintenance and small works", "url": "", "priority": "Municipal"}, {"region_group": "North Africa", "country": "Egypt", "name": "Ministry of Transport", "local_name": "", "type": "Ministry", "scope": "National transport and connectivity", "url": "http://www.mot.gov.eg/", "priority": "Priority"}, {"region_group": "North Africa", "country": "Egypt", "name": "General Authority for Roads, Bridges and Land Transport (GARBLT)", "local_name": "", "type": "Road Authority", "scope": "Highways, ring roads, viaducts, intercity roads and bridges", "url": "", "priority": "Priority"}, {"region_group": "North Africa", "country": "Egypt", "name": "Ministry of Housing, Utilities and Urban Communities", "local_name": "", "type": "Ministry", "scope": "Housing, utilities and urban infrastructure", "url": "", "priority": "Priority"}, {"region_group": "North Africa", "country": "Egypt", "name": "New Urban Communities Authority (NUCA)", "local_name": "", "type": "Urban Development Authority", "scope": "New cities, housing, roads and infrastructure", "url": "https://www.newcities.gov.eg/", "priority": "Priority"}, {"region_group": "North Africa", "country": "Algeria", "name": "Ministry of Public Works and Basic Infrastructure", "local_name": "", "type": "Ministry", "scope": "National infrastructure and public works", "url": "", "priority": "Strategic"}, {"region_group": "North Africa", "country": "Algeria", "name": "Algérienne des Autoroutes (ADA)", "local_name": "", "type": "Highways Authority", "scope": "Motorways, toll plazas and highway bridges", "url": "", "priority": "Strategic"}, {"region_group": "North Africa", "country": "Morocco", "name": "Ministry of Equipment and Transport / Infrastructure", "local_name": "", "type": "Ministry", "scope": "National infrastructure and transport planning", "url": "", "priority": "Strategic"}, {"region_group": "North Africa", "country": "Morocco", "name": "Autoroutes du Maroc (ADM)", "local_name": "", "type": "Highways Operator", "scope": "Motorways, bridges and toll infrastructure", "url": "", "priority": "Strategic"}, {"region_group": "North Africa", "country": "Tunisia", "name": "Ministry of Equipment and Housing", "local_name": "وزارة التجهيز والإسكان", "type": "Ministry", "scope": "Highways, roads, bridges and public works", "url": "", "priority": "Strategic"}, {"region_group": "North Africa", "country": "Sudan", "name": "National Infrastructure / Highway Authorities", "local_name": "", "type": "Ministry / Road Authority", "scope": "National corridors and highways subject to current institutional structure", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Nigeria", "name": "Federal Ministry of Works", "local_name": "", "type": "Ministry", "scope": "Federal roads, bridges and expressways", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Nigeria", "name": "Federal Roads Maintenance Agency (FERMA)", "local_name": "", "type": "Road Agency", "scope": "Road rehabilitation and bridge repair", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Ghana", "name": "Ministry of Roads and Highways", "local_name": "", "type": "Ministry", "scope": "National road policy and delivery", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Ghana", "name": "Ghana Highway Authority (GHA)", "local_name": "", "type": "Highway Authority", "scope": "Trunk roads, international corridors and flyovers", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Ghana", "name": "Department of Urban Roads (DUR)", "local_name": "", "type": "Urban Road Agency", "scope": "Urban roads and municipal transport infrastructure", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Ghana", "name": "Department of Feeder Roads (DFR)", "local_name": "", "type": "Rural Road Agency", "scope": "Rural access and feeder roads", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Côte d'Ivoire", "name": "AGEROUTE Côte d'Ivoire", "local_name": "", "type": "Road Agency", "scope": "Road works, bridges and structural engineering", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Senegal", "name": "AGEROUTE Senegal", "local_name": "", "type": "Road Agency", "scope": "Expressways, national roads and structures", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Mali", "name": "Public Works / Road Maintenance Fund", "local_name": "", "type": "Ministry / Road Fund", "scope": "Roads and infrastructure", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Niger", "name": "Public Works / Road Maintenance Fund", "local_name": "", "type": "Ministry / Road Fund", "scope": "Roads and infrastructure", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Burkina Faso", "name": "Public Works / Road Maintenance Fund", "local_name": "", "type": "Ministry / Road Fund", "scope": "Roads and infrastructure", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Guinea", "name": "Public Works / Road Maintenance Fund", "local_name": "", "type": "Ministry / Road Fund", "scope": "Roads and infrastructure", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Benin", "name": "Public Works / Road Maintenance Fund", "local_name": "", "type": "Ministry / Road Fund", "scope": "Roads and infrastructure", "url": "", "priority": "Strategic"}, {"region_group": "West Africa", "country": "Togo", "name": "Public Works / Road Maintenance Fund", "local_name": "", "type": "Ministry / Road Fund", "scope": "Roads and infrastructure", "url": "", "priority": "Strategic"}, {"region_group": "East & Central Africa", "country": "Ethiopia", "name": "Ethiopian Roads Administration (ERA)", "local_name": "", "type": "Road Authority", "scope": "Federal highways, expressways and major bridges", "url": "", "priority": "Strategic"}, {"region_group": "East & Central Africa", "country": "Kenya", "name": "Kenya National Highways Authority (KeNHA)", "local_name": "", "type": "Highway Authority", "scope": "National trunk roads, highways and bypasses", "url": "", "priority": "Strategic"}, {"region_group": "East & Central Africa", "country": "Kenya", "name": "Kenya Urban Roads Authority (KURA)", "local_name": "", "type": "Urban Road Authority", "scope": "Urban roads and interchanges", "url": "", "priority": "Strategic"}, {"region_group": "East & Central Africa", "country": "Kenya", "name": "Kenya Rural Roads Authority (KeRRA)", "local_name": "", "type": "Rural Road Authority", "scope": "Rural access roads", "url": "", "priority": "Strategic"}, {"region_group": "East & Central Africa", "country": "Tanzania", "name": "TANROADS", "local_name": "", "type": "National Road Agency", "scope": "National roads, airports and major bridges", "url": "", "priority": "Strategic"}, {"region_group": "East & Central Africa", "country": "Uganda", "name": "Uganda National Roads Authority / successor structure", "local_name": "", "type": "Road Authority", "scope": "National roads and bridges; verify current institutional structure", "url": "", "priority": "Strategic"}, {"region_group": "East & Central Africa", "country": "DR Congo", "name": "Office des Routes (OdR)", "local_name": "", "type": "Road Authority", "scope": "National roads and river bridges", "url": "", "priority": "Strategic"}, {"region_group": "Southern Africa", "country": "South Africa", "name": "SANRAL", "local_name": "", "type": "National Roads Agency", "scope": "Toll and non-toll national roads and major bridges", "url": "", "priority": "Strategic"}, {"region_group": "Southern Africa", "country": "South Africa", "name": "Provincial Transport / Public Works Departments", "local_name": "", "type": "Provincial Authority", "scope": "Regional routes and urban interchanges", "url": "", "priority": "Strategic"}, {"region_group": "Southern Africa", "country": "Angola", "name": "INEA - Instituto Nacional de Estradas de Angola", "local_name": "", "type": "National Road Institute", "scope": "Highways, bridges and logistic routes", "url": "", "priority": "Strategic"}, {"region_group": "Southern Africa", "country": "Zambia", "name": "Road Development Agency (RDA)", "local_name": "", "type": "Road Authority", "scope": "Public roads and bridges", "url": "", "priority": "Strategic"}, {"region_group": "Southern Africa", "country": "Zimbabwe", "name": "ZINARA / Ministry of Transport and Infrastructural Development", "local_name": "", "type": "Road Administration / Ministry", "scope": "Road financing, infrastructure and transport projects", "url": "", "priority": "Strategic"}, {"region_group": "Africa-wide", "country": "Africa-wide", "name": "African Development Bank (AfDB)", "local_name": "", "type": "Development Bank", "scope": "Cross-border infrastructure, roads, bridges and transport corridors", "url": "https://www.afdb.org/", "priority": "Priority"}, {"region_group": "Africa-wide", "country": "Africa-wide", "name": "AUDA-NEPAD / PIDA", "local_name": "", "type": "Regional Development Institution", "scope": "PIDA and trans-African infrastructure corridor programs", "url": "", "priority": "Strategic"}];
+const GCC=[{"gcc_country": "Saudi Arabia", "name": "Ministry of Transport and Logistics Services", "local_name": "وزارة النقل والخدمات اللوجستية", "type": "Ministry", "scope": "National highways, transport corridors, logistics infrastructure", "url": "", "priority": "Priority"}, {"gcc_country": "Saudi Arabia", "name": "Ministry of Municipalities and Housing", "local_name": "وزارة البلديات والإسكان", "type": "Ministry / Municipal", "scope": "Urban roads, tunnels, bridges, intersections, housing and municipal infrastructure", "url": "", "priority": "Priority"}, {"gcc_country": "Saudi Arabia", "name": "Makkah Region Development Authority", "local_name": "هيئة تطوير منطقة مكة المكرمة", "type": "Regional Development Authority", "scope": "Regional roads, urban corridors, public realm and infrastructure", "url": "", "priority": "Strategic"}, {"gcc_country": "Saudi Arabia", "name": "Madinah Region Development Authority", "local_name": "هيئة تطوير منطقة المدينة المنورة", "type": "Regional Development Authority", "scope": "Regional infrastructure, roads, urban development and transport corridors", "url": "", "priority": "Strategic"}, {"gcc_country": "Saudi Arabia", "name": "Public Investment Fund (PIF)", "local_name": "صندوق الاستثمارات العامة", "type": "Sovereign Wealth Fund", "scope": "Strategic investment and giga-project development", "url": "https://www.pif.gov.sa/", "priority": "Priority"}, {"gcc_country": "Saudi Arabia", "name": "Diriyah Company", "local_name": "شركة الدرعية", "type": "Master Developer", "scope": "Infrastructure, buildings, public realm, roads and utilities", "url": "https://www.diriyah.sa/", "priority": "Strategic"}, {"gcc_country": "Saudi Arabia", "name": "New Murabba Development Company", "local_name": "شركة تطوير المربع الجديد", "type": "Master Developer", "scope": "Urban infrastructure, mixed-use development, roads and utilities", "url": "https://newmurabba.com/", "priority": "Strategic"}, {"gcc_country": "Saudi Arabia", "name": "Qiddiya Investment Company", "local_name": "شركة القدية للاستثمار", "type": "Master Developer", "scope": "Entertainment-city infrastructure, roads, buildings and utilities", "url": "https://qiddiya.com/", "priority": "Strategic"}, {"gcc_country": "Saudi Arabia", "name": "Saudi Downtown Company", "local_name": "شركة داون تاون السعودية", "type": "Master Developer", "scope": "Urban regeneration and downtown infrastructure across Saudi cities", "url": "https://saudidowntown.com/", "priority": "Strategic"}, {"gcc_country": "United Arab Emirates", "name": "Ministry of Energy and Infrastructure", "local_name": "وزارة الطاقة والبنية التحتية", "type": "Federal Ministry", "scope": "Federal roads, bridges and inter-emirate infrastructure", "url": "https://www.moei.gov.ae/", "priority": "Priority"}, {"gcc_country": "United Arab Emirates", "name": "Dubai Roads and Transport Authority (RTA)", "local_name": "هيئة الطرق والمواصلات بدبي", "type": "Transport Authority", "scope": "Roads, bridges, tunnels, metro and urban mobility infrastructure", "url": "https://www.rta.ae/", "priority": "Priority"}, {"gcc_country": "United Arab Emirates", "name": "Dubai Municipality", "local_name": "بلدية دبي", "type": "Municipality", "scope": "Public buildings, municipal infrastructure and service projects", "url": "https://www.dm.gov.ae/", "priority": "Priority"}, {"gcc_country": "United Arab Emirates", "name": "Abu Dhabi Department of Municipalities and Transport (DMT)", "local_name": "دائرة البلديات والنقل - أبوظبي", "type": "Municipal / Transport Authority", "scope": "Infrastructure planning, roads, municipal and transport projects", "url": "https://www.dmt.gov.ae/", "priority": "Priority"}, {"gcc_country": "United Arab Emirates", "name": "Abu Dhabi General Services Company / Musanada successor structure", "local_name": "مساندة / الهيكل الخلف الحالي", "type": "Government Project Delivery", "scope": "Roads, bridges and government buildings; verify current procurement structure", "url": "", "priority": "Strategic"}, {"gcc_country": "United Arab Emirates", "name": "Sharjah Municipality", "local_name": "بلدية الشارقة", "type": "Municipality", "scope": "Urban roads, municipal infrastructure and public works", "url": "https://portal.shjmun.gov.ae/", "priority": "Strategic"}, {"gcc_country": "United Arab Emirates", "name": "Ajman Department of Municipality and Planning", "local_name": "دائرة البلدية والتخطيط بعجمان", "type": "Municipality", "scope": "Roads, public works and municipal infrastructure", "url": "https://www.am.gov.ae/", "priority": "Strategic"}, {"gcc_country": "United Arab Emirates", "name": "Ras Al Khaimah Municipality", "local_name": "بلدية رأس الخيمة", "type": "Municipality", "scope": "Municipal roads, buildings and infrastructure", "url": "https://mun.rak.ae/", "priority": "Strategic"}, {"gcc_country": "United Arab Emirates", "name": "Fujairah Municipality", "local_name": "بلدية الفجيرة", "type": "Municipality", "scope": "Municipal roads, public works and buildings", "url": "", "priority": "Strategic"}, {"gcc_country": "United Arab Emirates", "name": "Umm Al Quwain Municipality", "local_name": "بلدية أم القيوين", "type": "Municipality", "scope": "Municipal infrastructure and public works", "url": "", "priority": "Strategic"}, {"gcc_country": "Qatar", "name": "Public Works Authority (Ashghal)", "local_name": "هيئة الأشغال العامة - أشغال", "type": "Public Works Authority", "scope": "Roads, expressways, bridges, tunnels, drainage, schools and hospitals", "url": "https://www.ashghal.gov.qa/", "priority": "Priority"}, {"gcc_country": "Qatar", "name": "Ministry of Municipality", "local_name": "وزارة البلدية", "type": "Ministry", "scope": "Urban planning and municipal project coordination", "url": "https://www.mme.gov.qa/", "priority": "Strategic"}, {"gcc_country": "Qatar", "name": "Qatari Diar", "local_name": "الديار القطرية", "type": "State-backed Developer", "scope": "Master developments, roads, infrastructure and mixed-use projects", "url": "https://www.qataridiar.com/", "priority": "Strategic"}, {"gcc_country": "Qatar", "name": "Monaqasat - Ministry of Finance Government Procurement Portal", "local_name": "بوابة المشتريات الحكومية الموحدة", "type": "National Procurement Portal", "scope": "Central government procurement and tenders", "url": "https://monaqasat.mof.gov.qa/", "priority": "Priority"}, {"gcc_country": "Oman", "name": "Ministry of Transport, Communications and Information Technology", "local_name": "وزارة النقل والاتصالات وتقنية المعلومات", "type": "Ministry", "scope": "Strategic roads, bridges, tunnels and transport infrastructure", "url": "https://www.mtcit.gov.om/", "priority": "Priority"}, {"gcc_country": "Oman", "name": "Ministry of Housing and Urban Planning", "local_name": "وزارة الإسكان والتخطيط العمراني", "type": "Ministry", "scope": "Future cities, housing, urban infrastructure, roads and utilities", "url": "https://housing.gov.om/", "priority": "Priority"}, {"gcc_country": "Oman", "name": "Muscat Municipality", "local_name": "بلدية مسقط", "type": "Municipality", "scope": "Urban roads, bridges, public realm and municipal infrastructure", "url": "https://www.mm.gov.om/", "priority": "Priority"}, {"gcc_country": "Oman", "name": "Dhofar Municipality", "local_name": "بلدية ظفار", "type": "Municipality", "scope": "Urban roads, municipal infrastructure and public works", "url": "https://www.dm.gov.om/", "priority": "Strategic"}, {"gcc_country": "Kuwait", "name": "Ministry of Public Works", "local_name": "وزارة الأشغال العامة", "type": "Ministry", "scope": "Government buildings, major infrastructure and public works", "url": "https://www.mpw.gov.kw/", "priority": "Priority"}, {"gcc_country": "Kuwait", "name": "Public Authority for Roads and Transportation (PART)", "local_name": "الهيئة العامة للطرق والنقل البري", "type": "Road Authority", "scope": "Highways, bridges and major intersections; verify current responsible structure", "url": "", "priority": "Priority"}, {"gcc_country": "Kuwait", "name": "Public Authority for Housing Welfare", "local_name": "المؤسسة العامة للرعاية السكنية", "type": "Housing Authority", "scope": "New housing cities, roads, bridges and infrastructure", "url": "https://www.pahw.gov.kw/", "priority": "Priority"}, {"gcc_country": "Kuwait", "name": "Central Agency for Public Tenders (CAPT)", "local_name": "الجهاز المركزي للمناقصات العامة", "type": "National Procurement Portal", "scope": "Centralized government tendering", "url": "https://capt.gov.kw/", "priority": "Priority"}, {"gcc_country": "Bahrain", "name": "Ministry of Works", "local_name": "وزارة الأشغال", "type": "Ministry", "scope": "Roads, bridges, tunnels, sewerage and government buildings", "url": "https://www.works.gov.bh/", "priority": "Priority"}, {"gcc_country": "Bahrain", "name": "Ministry of Municipalities Affairs and Agriculture", "local_name": "وزارة شؤون البلديات والزراعة", "type": "Ministry", "scope": "Local roads, parks and municipal projects", "url": "https://www.mun.gov.bh/", "priority": "Strategic"}, {"gcc_country": "Bahrain", "name": "Bahrain Tender Board", "local_name": "مجلس المناقصات والمزايدات", "type": "National Procurement Portal", "scope": "Centralized public procurement and tenders", "url": "https://www.tenderboard.gov.bh/", "priority": "Priority"}];
+const WATCH={last_checked:"2026-09-18T18:48:17.730684+00:00",next_check:"2026-09-18T19:48:17.730684+00:00",interval_minutes:60};
+const $=id=>document.getElementById(id), uniq=a=>[...new Set(a.filter(Boolean))].sort();
+
+function tick(){
+ const last = new Date(WATCH.last_checked);
+ const configuredNext = new Date(WATCH.next_check);
+ const now = new Date();
+ const intervalMs = Math.max(1, Number(WATCH.interval_minutes || 60)) * 60 * 1000;
+
+ $("lastChecked").textContent = isNaN(last) ? "Unknown" : last.toLocaleString();
+
+ // Keep the countdown alive even if the embedded next_check timestamp is already past.
+ let next = configuredNext;
+ if (isNaN(next)) {
+   next = new Date(now.getTime() + intervalMs);
+ } else if (next <= now) {
+   const elapsed = now.getTime() - next.getTime();
+   const cycles = Math.floor(elapsed / intervalMs) + 1;
+   next = new Date(next.getTime() + cycles * intervalMs);
+ }
+
+ const ms = Math.max(0, next.getTime() - now.getTime());
+ const h = Math.floor(ms / 3600000);
+ const m = Math.floor((ms % 3600000) / 60000);
+ const s = Math.floor((ms % 60000) / 1000);
+ $("countdown").textContent = String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+tick();
+setInterval(tick,1000);
+
+function fill(id,vals){vals.forEach(v=>$(id).insertAdjacentHTML("beforeend",`<option>${v}</option>`))}
+fill("country",uniq(TENDERS.map(x=>x.country)));fill("status",uniq(TENDERS.map(x=>x.status)));fill("urgency",uniq(TENDERS.map(x=>x.urgency)));fill("verification",uniq(TENDERS.map(x=>x.verification_status)));fill("sector",uniq(TENDERS.map(x=>x.sector)));
+fill("queueUrgency",uniq(TENDERS.map(x=>x.urgency)));fill("queueCountry",uniq(TENDERS.map(x=>x.country)));fill("siteCountry",uniq(HEALTH.map(x=>x.country)));
+fill("africaRegion",uniq(AFRICA.map(x=>x.region_group)));fill("africaCountry",uniq(AFRICA.map(x=>x.country)));
+fill("gccCountry",uniq(GCC.map(x=>x.gcc_country)));fill("gccType",uniq(GCC.map(x=>x.type)));
+Object.keys(REGIONS).forEach(v=>$("regionCountry").insertAdjacentHTML("beforeend",`<option>${v}</option>`));$("kSites").textContent=HEALTH.length;
+
+function filtered(){const vals={country:$("country").value,status:$("status").value,urgency:$("urgency").value,verification_status:$("verification").value,sector:$("sector").value};const q=$("search").value.trim().toLowerCase();return TENDERS.filter(r=>{for(const[k,v]of Object.entries(vals))if(v&&r[k]!==v)return false;if(q){const h=[r.title,r.issuer,r.region,r.city,r.reference,r.scope,r.source_name].join(" ").toLowerCase();if(!h.includes(q))return false}return true})}
+
+function render(){
+ const rows=filtered().sort((a,b)=>(b.attention_score||0)-(a.attention_score||0));
+ $("kTotal").textContent=rows.length;$("kOpen").textContent=rows.filter(x=>String(x.status).toLowerCase()=="open").length;$("kChanged").textContent=rows.filter(x=>x.is_new||x.is_updated).length;$("kUrgent").textContent=rows.filter(x=>["Critical","High"].includes(x.urgency)).length;
+ $("execContent").innerHTML=rows.slice(0,6).map(r=>`<div class="card"><b>${r.country} — ${r.title}</b><div class="small">${r.issuer} · ${r.region} · ${r.city}</div><div class="small">Urgency ${r.urgency} · Attention ${r.attention_score} · Verification ${r.verification_status}</div><div class="small">Next: ${r.next_action}</div></div>`).join("");
+ const qc=["attention_score","urgency","country","region","city","title","issuer","deadline","verification_status","next_action"];
+ renderQueueTable(rows);
+ $("cards").innerHTML=rows.map(r=>`<div class="card"><div><span class="badge">${r.country||""}</span><span class="badge">${r.sector||""}</span><span class="badge">${r.status||""}</span><span class="badge">${r.urgency||""}</span></div><h3>${r.title||""}</h3><div class="small"><b>${r.issuer||""}</b> · ${r.region||""} · ${r.city||""} · Ref ${r.reference||"—"}</div><p>${r.scope||""}</p><div class="small">How it came: <b>${r.source_type||""}</b> via <b>${r.source_name||""}</b></div><div class="small">Next action: <b>${r.next_action||""}</b></div>${r.source_url?`<a class="btn" target="_blank" href="${r.source_url}">Open source</a>`:""}</div>`).join("");
+}
+
+
+let queuePage=1, sitePage=1, africaPage=1, gccPage=1, queueSort={key:"attention_score",dir:-1}, siteSort={key:"country",dir:1}, africaSort={key:"region_group",dir:1}, gccSort={key:"gcc_country",dir:1};
+
+function pillUrgency(v){
+ const m={Critical:"pill-red",High:"pill-orange",Medium:"pill-yellow",Normal:"pill-green",Inactive:"pill-blue"};
+ return `<span class="pill ${m[v]||"pill-blue"}">${v||"—"}</span>`;
+}
+function pillVerify(v){
+ const cls=(v==="Official"||v==="Direct corporate"||v==="International")?"pill-green":(v==="Aggregator lead"?"pill-yellow":"pill-red");
+ return `<span class="pill ${cls}">${v||"—"}</span>`;
+}
+function cmp(a,b,key,dir){
+ let x=a[key],y=b[key];
+ if(key==="deadline"){x=new Date(x||"9999-12-31").getTime();y=new Date(y||"9999-12-31").getTime();}
+ else if(typeof x==="string"){x=x.toLowerCase();y=String(y||"").toLowerCase();}
+ if(x<y)return -1*dir;if(x>y)return 1*dir;return 0;
+}
+function sortableHead(label,key,scope){
+ const state=scope==="queue"?queueSort:(scope==="site"?siteSort:(scope==="africa"?africaSort:gccSort));
+ const mark=state.key===key?(state.dir===1?"▲":"▼"):"↕";
+ return `<th data-key="${key}" data-scope="${scope}">${label}<span class="sortmark">${mark}</span></th>`;
+}
+function bindSort(){
+ document.querySelectorAll("th[data-key]").forEach(th=>th.onclick=()=>{
+   const scope=th.dataset.scope,key=th.dataset.key;
+   const st=scope==="queue"?queueSort:(scope==="site"?siteSort:(scope==="africa"?africaSort:gccSort));
+   if(st.key===key)st.dir*=-1;else{st.key=key;st.dir=1}
+   if(scope==="queue"){queuePage=1;renderQueueTable(filtered())}else if(scope==="site"){sitePage=1;renderSites()}else if(scope==="africa"){africaPage=1;renderAfrica()}else{gccPage=1;renderGCC()}
+ });
+}
+function renderQueueTable(baseRows){
+ let rows=[...baseRows];
+ const q=($("queueSearch")?.value||"").toLowerCase().trim();
+ const urg=$("queueUrgency")?.value||"", country=$("queueCountry")?.value||"";
+ rows=rows.filter(r=>{
+   if(urg&&r.urgency!==urg)return false;if(country&&r.country!==country)return false;
+   if(q&&!([r.title,r.issuer,r.city,r.region,r.next_action,r.reference].join(" ").toLowerCase().includes(q)))return false;
+   return true;
+ });
+ rows.sort((a,b)=>cmp(a,b,queueSort.key,queueSort.dir));
+ const size=Number($("queuePageSize")?.value||25), pages=Math.max(1,Math.ceil(rows.length/size));
+ queuePage=Math.min(queuePage,pages);
+ const pageRows=rows.slice((queuePage-1)*size,queuePage*size);
+ $("queueCount").textContent=`${rows.length} matching records`;
+ $("queuePageInfo").textContent=`Page ${queuePage} of ${pages}`;
+ $("queuePrev").disabled=queuePage<=1;$("queueNext").disabled=queuePage>=pages;
+ const head="<thead><tr>"+
+   sortableHead("Attention","attention_score","queue")+
+   sortableHead("Urgency","urgency","queue")+
+   sortableHead("Country","country","queue")+
+   sortableHead("Location","city","queue")+
+   sortableHead("Opportunity","title","queue")+
+   sortableHead("Issuer","issuer","queue")+
+   sortableHead("Deadline","deadline","queue")+
+   sortableHead("Verification","verification_status","queue")+
+   "<th>Next action</th><th>Source</th></tr></thead>";
+ const body="<tbody>"+pageRows.map(r=>{
+   const cls=r.urgency==="Critical"?"row-critical":r.urgency==="High"?"row-high":r.urgency==="Medium"?"row-medium":"";
+   const score=Math.max(0,Math.min(100,Number(r.attention_score||0)));
+   return `<tr class="${cls}">
+    <td><b>${score}</b><div class="scorebar"><span style="width:${score}%"></span></div></td>
+    <td>${pillUrgency(r.urgency)}</td>
+    <td>${r.country||""}</td>
+    <td>${r.city||""}<span class="table-sub">${r.region||""}</span></td>
+    <td class="table-title-cell">${r.title||""}<span class="table-sub">Ref ${r.reference||"—"}</span></td>
+    <td>${r.issuer||""}</td>
+    <td>${r.deadline||"—"}</td>
+    <td>${pillVerify(r.verification_status)}</td>
+    <td>${r.next_action||""}</td>
+    <td>${r.source_url?`<a class="urlbtn" href="${r.source_url}" target="_blank">Open ↗</a>`:"—"}</td>
+   </tr>`;
+ }).join("")+"</tbody>";
+ $("queueTable").innerHTML=head+body;bindSort();
+}
+
+function renderSites(){
+ let rows=[...HEALTH];
+ const q=($("siteSearch")?.value||"").toLowerCase().trim();
+ const country=$("siteCountry")?.value||"", state=$("siteWatchState")?.value||"";
+ rows=rows.filter(r=>{
+   if(country&&r.country!==country)return false;
+   if(state==="yes"&&!r.watched_last_turn)return false;if(state==="no"&&r.watched_last_turn)return false;
+   if(q&&!([r.client_name,r.source_name,r.site_url,r.source_class,r.health_state].join(" ").toLowerCase().includes(q)))return false;
+   return true;
+ });
+ rows.sort((a,b)=>cmp(a,b,siteSort.key,siteSort.dir));
+ const size=Number($("sitePageSize")?.value||25),pages=Math.max(1,Math.ceil(rows.length/size));
+ sitePage=Math.min(sitePage,pages);
+ const pageRows=rows.slice((sitePage-1)*size,sitePage*size);
+ const ok=rows.filter(r=>r.watched_last_turn).length;
+ $("siteCount").textContent=`${rows.length} sources • ✅ ${ok} • ❌ ${rows.length-ok}`;
+ $("sitePageInfo").textContent=`Page ${sitePage} of ${pages}`;
+ $("sitePrev").disabled=sitePage<=1;$("siteNext").disabled=sitePage>=pages;
+ const head="<thead><tr>"+
+   sortableHead("Last turn","watched_last_turn","site")+
+   sortableHead("Country","country","site")+
+   sortableHead("Client / Issuer","client_name","site")+
+   sortableHead("Watched site","source_name","site")+
+   sortableHead("Class","source_class","site")+
+   sortableHead("Health","health_state","site")+
+   sortableHead("Last checked","last_checked","site")+
+   "<th>URL</th></tr></thead>";
+ const body="<tbody>"+pageRows.map(r=>`<tr class="${r.watched_last_turn?"row-ok":"row-critical"}">
+   <td>${r.watched_last_turn?'<span class="pill pill-green">✅ Watched</span>':'<span class="pill pill-red">❌ Missed</span>'}</td>
+   <td>${r.country||""}</td>
+   <td class="table-title-cell">${r.client_name||""}</td>
+   <td>${r.source_name||""}</td>
+   <td>${r.source_class||""}</td>
+   <td>${r.health_state||""}</td>
+   <td>${r.last_checked?new Date(r.last_checked).toLocaleString():"—"}</td>
+   <td>${r.site_url?`<a class="urlbtn" href="${r.site_url}" target="_blank">Open ↗</a>`:"—"}</td>
+ </tr>`).join("")+"</tbody>";
+ $("sitesTable").innerHTML=head+body;bindSort();
+}
+
+
+function renderGCC(){
+ let rows=[...GCC];
+ const q=($("gccSearch")?.value||"").toLowerCase().trim();
+ const country=$("gccCountry")?.value||"", type=$("gccType")?.value||"";
+ rows=rows.filter(r=>{
+   if(country&&r.gcc_country!==country)return false;
+   if(type&&r.type!==type)return false;
+   if(q&&!([r.name,r.local_name,r.scope,r.type,r.gcc_country].join(" ").toLowerCase().includes(q)))return false;
+   return true;
+ });
+ rows.sort((a,b)=>cmp(a,b,gccSort.key,gccSort.dir));
+ const size=Number($("gccPageSize")?.value||25),pages=Math.max(1,Math.ceil(rows.length/size));
+ gccPage=Math.min(gccPage,pages);
+ const pageRows=rows.slice((gccPage-1)*size,gccPage*size);
+ $("gccCount").textContent=`${rows.length} GCC authorities • original 42 sources preserved`;
+ $("gccPageInfo").textContent=`Page ${gccPage} of ${pages}`;
+ $("gccPrev").disabled=gccPage<=1;$("gccNext").disabled=gccPage>=pages;
+ const head="<thead><tr>"+
+   sortableHead("Country","gcc_country","gcc")+
+   sortableHead("Authority / Client","name","gcc")+
+   sortableHead("Arabic / Local name","local_name","gcc")+
+   sortableHead("Type","type","gcc")+
+   "<th>Typical procurement scope</th>"+
+   sortableHead("Priority","priority","gcc")+
+   "<th>Official URL</th></tr></thead>";
+ const body="<tbody>"+pageRows.map(r=>`<tr>
+   <td>${r.gcc_country||""}</td>
+   <td class="table-title-cell">${r.name||""}</td>
+   <td>${r.local_name||"—"}</td>
+   <td>${r.type||""}</td>
+   <td>${r.scope||""}</td>
+   <td><span class="pill ${r.priority==="Priority"?"pill-green":"pill-blue"}">${r.priority||""}</span></td>
+   <td>${r.url?`<a class="urlbtn" href="${r.url}" target="_blank">Open ↗</a>`:'<span class="pill pill-yellow">URL pending</span>'}</td>
+ </tr>`).join("")+"</tbody>";
+ $("gccTable").innerHTML=head+body;bindSort();
+}
+
+function renderAfrica(){
+ let rows=[...AFRICA];
+ const q=($("africaSearch")?.value||"").toLowerCase().trim();
+ const region=$("africaRegion")?.value||"", country=$("africaCountry")?.value||"";
+ rows=rows.filter(r=>{
+   if(region&&r.region_group!==region)return false;
+   if(country&&r.country!==country)return false;
+   if(q&&!([r.name,r.local_name,r.scope,r.type,r.country,r.region_group].join(" ").toLowerCase().includes(q)))return false;
+   return true;
+ });
+ rows.sort((a,b)=>cmp(a,b,africaSort.key,africaSort.dir));
+ const size=Number($("africaPageSize")?.value||25),pages=Math.max(1,Math.ceil(rows.length/size));
+ africaPage=Math.min(africaPage,pages);
+ const pageRows=rows.slice((africaPage-1)*size,africaPage*size);
+ $("africaCount").textContent=`${rows.length} authorities • new additions remain pending until checked`;
+ $("africaPageInfo").textContent=`Page ${africaPage} of ${pages}`;
+ $("africaPrev").disabled=africaPage<=1;$("africaNext").disabled=africaPage>=pages;
+ const head="<thead><tr>"+
+   sortableHead("Region","region_group","africa")+
+   sortableHead("Country","country","africa")+
+   sortableHead("Authority / Client","name","africa")+
+   sortableHead("Local name","local_name","africa")+
+   sortableHead("Type","type","africa")+
+   "<th>Typical procurement scope</th>"+
+   sortableHead("Priority","priority","africa")+
+   "<th>Official URL</th></tr></thead>";
+ const body="<tbody>"+pageRows.map(r=>`<tr>
+   <td>${r.region_group||""}</td>
+   <td>${r.country||""}</td>
+   <td class="table-title-cell">${r.name||""}</td>
+   <td>${r.local_name||"—"}</td>
+   <td>${r.type||""}</td>
+   <td>${r.scope||""}</td>
+   <td><span class="pill ${r.priority==="Priority"?"pill-green":"pill-blue"}">${r.priority||""}</span></td>
+   <td>${r.url?`<a class="urlbtn" href="${r.url}" target="_blank">Open ↗</a>`:'<span class="pill pill-yellow">URL pending</span>'}</td>
+ </tr>`).join("")+"</tbody>";
+ $("africaTable").innerHTML=head+body;bindSort();
+}
+
+function renderHealth(){const cols=["country","source_name","coverage_status","health_state","verification","notes"];$("healthTable").innerHTML="<thead><tr>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr></thead><tbody>"+HEALTH.map(r=>"<tr>"+cols.map(c=>`<td>${r[c]??""}</td>`).join("")+"</tr>").join("")+"</tbody>"}
+function renderRegions(){const c=$("regionCountry").value,obj=REGIONS[c]||{};$("regionCards").innerHTML=Object.entries(obj).map(([r,cities])=>`<div class="region"><b>${r}</b><div class="small" style="margin-top:6px">${cities.join(" • ")}</div></div>`).join("")}
+
+["country","status","urgency","verification","sector","search"].forEach(id=>$(id).addEventListener("input",()=>{queuePage=1;render()}));
+["queueSearch","queueUrgency","queueCountry","queuePageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{queuePage=1;renderQueueTable(filtered())}));
+["siteSearch","siteCountry","siteWatchState","sitePageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{sitePage=1;renderSites()}));
+["africaSearch","africaRegion","africaCountry","africaPageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{africaPage=1;renderAfrica()}));
+["gccSearch","gccCountry","gccType","gccPageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{gccPage=1;renderGCC()}));
+$("queuePrev").addEventListener("click",()=>{queuePage=Math.max(1,queuePage-1);renderQueueTable(filtered())});
+$("queueNext").addEventListener("click",()=>{queuePage+=1;renderQueueTable(filtered())});
+$("sitePrev").addEventListener("click",()=>{sitePage=Math.max(1,sitePage-1);renderSites()});
+$("siteNext").addEventListener("click",()=>{sitePage+=1;renderSites()});
+$("africaPrev").addEventListener("click",()=>{africaPage=Math.max(1,africaPage-1);renderAfrica()});
+$("africaNext").addEventListener("click",()=>{africaPage+=1;renderAfrica()});
+$("gccPrev").addEventListener("click",()=>{gccPage=Math.max(1,gccPage-1);renderGCC()});
+$("gccNext").addEventListener("click",()=>{gccPage+=1;renderGCC()});
+$("regionCountry").addEventListener("change",renderRegions);
+document.querySelectorAll(".tabbtn").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active")}));
+render();renderSites();renderGCC();renderAfrica();renderHealth();renderRegions();
+</script></body></html>

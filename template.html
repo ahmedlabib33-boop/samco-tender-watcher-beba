@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Construction Opportunity Command Center — Live</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<style>
+:root{--bg:#09111f;--panel:#121d33;--text:#eef4ff;--muted:#9db0cf;--line:#263654;--green:#28c76f;--red:#ff5d5d;--amber:#ffc968}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(180deg,#09111f,#0b1323);color:var(--text)}
+.wrap{max-width:1600px;margin:auto;padding:22px}.hero{padding:24px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(135deg,#172544,#10192e)}
+.hero h1{margin:0;font-size:34px}.hero p{margin:7px 0 0;color:var(--muted)}
+.hero-row{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.hero-copy{min-width:0}
+.hero-logo{flex:0 0 auto;background:#fff;border-radius:16px;padding:9px 11px;border:1px solid rgba(255,255,255,.22);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+.hero-logo img{display:block;height:72px;width:auto}
+.timergrid,.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}.kpis{grid-template-columns:repeat(5,1fr)}
+.timer,.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}.timer small,.kpi small{color:var(--muted)}.timer strong,.kpi strong{display:block;margin-top:5px;font-size:24px}
+.toolbar{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:14px 0}.toolbar input,.toolbar select{width:100%;padding:11px;border-radius:10px;background:#0a1325;color:var(--text);border:1px solid var(--line)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}.tabbtn{padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:#111d35;color:var(--text);cursor:pointer}.tabbtn.active{background:#234578}.tab{display:none}.tab.active{display:block}
+.card{padding:16px;border:1px solid var(--line);background:var(--panel);border-radius:16px;margin-bottom:12px}.small{color:var(--muted);font-size:13px}.badge{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--line);font-size:12px;margin-right:5px}
+.tablewrap{overflow:auto;max-height:700px;border:1px solid var(--line);border-radius:14px}table{width:100%;border-collapse:collapse;background:var(--panel)}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:13px}th{position:sticky;top:0;background:#172544}
+.ok{color:var(--green);font-weight:900;font-size:18px}.bad{color:var(--red);font-weight:900;font-size:18px}.btn{display:inline-block;text-decoration:none;background:#1d5da6;color:white;padding:8px 11px;border-radius:8px;margin-top:8px}.region{padding:12px;border:1px solid var(--line);background:var(--panel);border-radius:12px;margin-bottom:10px}
+@media(max-width:900px){.toolbar{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(2,1fr)}.timergrid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){
+ .wrap{padding:10px}.hero{padding:16px;border-radius:16px}.hero h1{font-size:24px;line-height:1.2}.hero p{font-size:13px}
+ .hero-row{flex-direction:column-reverse;align-items:flex-start;gap:12px}.hero-logo{padding:6px 8px;border-radius:12px}.hero-logo img{height:48px}
+ .toolbar,.kpis,.timergrid{grid-template-columns:1fr}.tabbtn{flex:1 1 calc(50% - 8px);font-size:13px;padding:9px 8px}
+ .card{padding:12px}.small{font-size:12px}.badge{font-size:11px}
+ table{min-width:760px}th,td{font-size:12px;padding:8px}.timer strong,.kpi strong{font-size:21px}
+}
+
+.brand-strip{
+  position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:99999;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:9px 16px;border:1px solid rgba(255,215,64,.42);border-radius:999px;
+  background:linear-gradient(135deg,rgba(9,17,31,.95),rgba(19,28,49,.97));
+  box-shadow:0 0 0 1px rgba(255,255,255,.03) inset,0 0 18px rgba(255,215,64,.18),0 10px 35px rgba(0,0,0,.40);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  color:#dbe7ff;font-size:12px;letter-spacing:.02em;white-space:nowrap;
+}
+.brand-strip::before{
+  content:"";width:7px;height:7px;border-radius:50%;background:#ffd84d;
+  box-shadow:0 0 8px rgba(255,216,77,.95),0 0 16px rgba(255,216,77,.68);
+}
+.brand-name{
+  color:#ffd84d;font-weight:900;
+  text-shadow:0 0 6px rgba(255,216,77,.78),0 0 14px rgba(255,216,77,.50),0 0 26px rgba(255,190,0,.24);
+}
+.brand-sep{opacity:.45}
+@media(max-width:640px){
+  .brand-strip{bottom:8px;max-width:calc(100vw - 18px);padding:8px 11px;font-size:10.5px;gap:5px;overflow:hidden;text-overflow:ellipsis}
+}
+
+
+/* ===== Professional dynamic tables ===== */
+.table-panel{border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.14)}
+.table-tools{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.018);flex-wrap:wrap}
+.table-tools-left,.table-tools-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.table-search,.table-select{background:#0a1325;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 10px;outline:none}
+.table-search{min-width:240px}
+.table-count{font-size:12px;color:var(--muted)}
+.pro-table{width:100%;border-collapse:separate;border-spacing:0;min-width:980px}
+.pro-table th{position:sticky;top:0;z-index:2;background:#172544;color:#eaf1ff;padding:11px 10px;border-bottom:1px solid var(--line);font-size:12px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;cursor:pointer;user-select:none}
+.pro-table th:hover{background:#1d3156}
+.pro-table th .sortmark{opacity:.45;margin-left:5px}
+.pro-table td{padding:11px 10px;border-bottom:1px solid rgba(38,54,84,.78);font-size:13px;vertical-align:top}
+.pro-table tbody tr:nth-child(even){background:rgba(255,255,255,.012)}
+.pro-table tbody tr:hover{background:rgba(80,130,220,.08)}
+.row-critical{box-shadow:inset 3px 0 0 #ff5d5d}
+.row-high{box-shadow:inset 3px 0 0 #ff9f43}
+.row-medium{box-shadow:inset 3px 0 0 #ffd166}
+.row-ok{box-shadow:inset 3px 0 0 #28c76f}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid var(--line);white-space:nowrap}
+.pill-red{color:#ffaaaa;background:rgba(255,93,93,.10);border-color:rgba(255,93,93,.28)}
+.pill-orange{color:#ffc28c;background:rgba(255,159,67,.10);border-color:rgba(255,159,67,.28)}
+.pill-yellow{color:#ffe58f;background:rgba(255,209,102,.10);border-color:rgba(255,209,102,.28)}
+.pill-green{color:#93f0bb;background:rgba(40,199,111,.10);border-color:rgba(40,199,111,.28)}
+.pill-blue{color:#a8c9ff;background:rgba(74,130,255,.10);border-color:rgba(74,130,255,.28)}
+.scorebar{width:92px;height:7px;border-radius:999px;background:#263654;overflow:hidden;margin-top:5px}
+.scorebar span{display:block;height:100%;background:linear-gradient(90deg,#5ba8ff,#ffd84d);border-radius:999px}
+.pagination{display:flex;gap:6px;align-items:center;justify-content:flex-end;padding:10px 12px;border-top:1px solid var(--line)}
+.pagebtn{border:1px solid var(--line);background:#0f1930;color:var(--text);padding:7px 10px;border-radius:8px;cursor:pointer}
+.pagebtn:disabled{opacity:.35;cursor:not-allowed}
+.pageinfo{font-size:12px;color:var(--muted);min-width:110px;text-align:center}
+.urlbtn{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:8px;background:#174f91;color:white;text-decoration:none;font-size:12px;white-space:nowrap}
+.table-title-cell{font-weight:700;line-height:1.28;max-width:330px}
+.table-sub{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+@media(max-width:640px){
+  .table-tools{align-items:stretch}
+  .table-tools-left,.table-tools-right{width:100%}
+  .table-search{min-width:0;width:100%}
+  .table-select{flex:1}
+  .tablewrap{max-height:70vh}
+  .pro-table{min-width:900px}
+}
+
+</style></head>
+<body><div class="wrap">
+<div class="hero"><div class="hero-row">
+ <div class="hero-copy"><h1>🏗️ Construction Opportunity Command Center</h1><p>MENA + GCC + Africa Strategic Infrastructure • Where • What • Who • Source path • Urgency • Reliability • Next action</p></div>
+ <div class="hero-logo" title="SAMCO Egypt"><img src="data:image/jpeg;base64,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" alt="SAMCO Egypt logo" width="194" height="150"></div>
+</div></div>
+
+<div class="timergrid">
+ <div class="timer"><small>Last checked</small><strong id="lastChecked">--</strong></div>
+ <div class="timer"><small>Next check in</small><strong id="countdown">--:--:--</strong></div>
+ <div class="timer"><small>Watcher cycle</small><strong id="cycleLabel">--</strong></div>
+ <div class="timer"><small>Sources OK</small><strong id="okSites">--</strong></div>
+ <div class="timer"><small>Snapshot age</small><strong id="freshChip" title="">--</strong></div>
+</div>
+<div id="provNote" class="small" style="margin:-4px 0 14px"></div>
+
+<div class="toolbar">
+<select id="country"><option value="">All countries</option></select>
+<select id="status"><option value="">All statuses</option></select>
+<select id="urgency"><option value="">All urgency</option></select>
+<select id="verification"><option value="">All verification</option></select>
+<select id="sector"><option value="">All sectors</option></select>
+<input id="search" placeholder="Search title, issuer, city, reference...">
+</div>
+
+<div class="kpis">
+<div class="kpi"><small>Visible</small><strong id="kTotal">0</strong></div>
+<div class="kpi"><small>Open</small><strong id="kOpen">0</strong></div>
+<div class="kpi"><small>New / Updated</small><strong id="kChanged">0</strong></div>
+<div class="kpi"><small>High / Critical</small><strong id="kUrgent">0</strong></div>
+<div class="kpi"><small>Sites probed</small><strong id="kSites">0</strong></div>
+</div>
+
+<div class="tabs">
+<button class="tabbtn active" data-tab="exec">Executive</button>
+<button class="tabbtn" data-tab="queue">Action Queue</button>
+<button class="tabbtn" data-tab="opps">Opportunities</button>
+<button class="tabbtn" data-tab="sites">Watched Sites</button>
+<button class="tabbtn" data-tab="gcc">GCC Authorities</button>
+<button class="tabbtn" data-tab="africa">Africa Authorities</button>
+<button class="tabbtn" data-tab="runs">Run Log</button>
+<button class="tabbtn" data-tab="health">Coverage Health</button>
+<button class="tabbtn" data-tab="where">Where</button>
+</div>
+
+<section id="exec" class="tab active"><div id="execContent"></div></section>
+<section id="queue" class="tab">
+<div class="table-panel">
+  <div class="table-tools">
+    <div class="table-tools-left">
+      <input id="queueSearch" class="table-search" placeholder="Search opportunity, issuer, city, action...">
+      <select id="queueUrgency" class="table-select"><option value="">All urgency</option></select>
+      <select id="queueCountry" class="table-select"><option value="">All countries</option></select>
+    </div>
+    <div class="table-tools-right">
+      <span id="queueCount" class="table-count"></span>
+      <select id="queuePageSize" class="table-select"><option>10</option><option selected>25</option><option>50</option></select>
+    </div>
+  </div>
+  <div class="tablewrap"><table id="queueTable" class="pro-table"></table></div>
+  <div class="pagination"><button id="queuePrev" class="pagebtn">‹ Prev</button><span id="queuePageInfo" class="pageinfo"></span><button id="queueNext" class="pagebtn">Next ›</button></div>
+</div>
+</section>
+<section id="opps" class="tab"><div id="cards"></div></section>
+<section id="sites" class="tab">
+<div class="table-panel">
+  <div class="table-tools">
+    <div class="table-tools-left">
+      <input id="siteSearch" class="table-search" placeholder="Search client, watched site or URL...">
+      <select id="siteCountry" class="table-select"><option value="">All countries</option></select>
+      <select id="siteWatchState" class="table-select"><option value="">All states</option><option value="yes">✅ Watched</option><option value="no">❌ Not watched</option></select>
+    </div>
+    <div class="table-tools-right">
+      <span id="siteCount" class="table-count"></span>
+      <select id="sitePageSize" class="table-select"><option>10</option><option selected>25</option><option>50</option></select>
+    </div>
+  </div>
+  <div class="tablewrap"><table id="sitesTable" class="pro-table"></table></div>
+  <div class="pagination"><button id="sitePrev" class="pagebtn">‹ Prev</button><span id="sitePageInfo" class="pageinfo"></span><button id="siteNext" class="pagebtn">Next ›</button></div>
+</div>
+</section>
+
+
+<section id="gcc" class="tab">
+<div class="table-panel">
+  <div class="table-tools">
+    <div class="table-tools-left">
+      <input id="gccSearch" class="table-search" placeholder="Search ministry, authority, developer, scope...">
+      <select id="gccCountry" class="table-select"><option value="">All GCC countries</option></select>
+      <select id="gccType" class="table-select"><option value="">All authority types</option></select>
+    </div>
+    <div class="table-tools-right">
+      <span id="gccCount" class="table-count"></span>
+      <select id="gccPageSize" class="table-select"><option>10</option><option selected>25</option><option>50</option></select>
+    </div>
+  </div>
+  <div class="tablewrap"><table id="gccTable" class="pro-table"></table></div>
+  <div class="pagination"><button id="gccPrev" class="pagebtn">‹ Prev</button><span id="gccPageInfo" class="pageinfo"></span><button id="gccNext" class="pagebtn">Next ›</button></div>
+</div>
+</section>
+
+<section id="africa" class="tab">
+<div class="table-panel">
+  <div class="table-tools">
+    <div class="table-tools-left">
+      <input id="africaSearch" class="table-search" placeholder="Search authority, country, scope...">
+      <select id="africaRegion" class="table-select"><option value="">All African regions</option></select>
+      <select id="africaCountry" class="table-select"><option value="">All countries</option></select>
+    </div>
+    <div class="table-tools-right">
+      <span id="africaCount" class="table-count"></span>
+      <select id="africaPageSize" class="table-select"><option>10</option><option selected>25</option><option>50</option></select>
+    </div>
+  </div>
+  <div class="tablewrap"><table id="africaTable" class="pro-table"></table></div>
+  <div class="pagination"><button id="africaPrev" class="pagebtn">‹ Prev</button><span id="africaPageInfo" class="pageinfo"></span><button id="africaNext" class="pagebtn">Next ›</button></div>
+</div>
+</section>
+
+<section id="health" class="tab"><div class="tablewrap"><table id="healthTable"></table></div></section>
+<section id="where" class="tab"><select id="regionCountry" style="padding:10px;background:#0a1325;color:white;border:1px solid var(--line);border-radius:10px;margin-bottom:12px"></select><div id="regionCards"></div></section>
+</div>
+
+<section id="runs" class="tab">
+<div class="table-panel">
+  <div class="table-tools"><div class="table-tools-left" id="runLog" style="display:block"></div></div>
+  <div class="tablewrap"><table id="runsTable" class="pro-table"></table></div>
+</div>
+<div class="table-panel" style="margin-top:14px">
+  <div class="table-tools"><div class="table-tools-left" id="gapNote" style="display:block"></div></div>
+  <div class="tablewrap"><table id="gapTable" class="pro-table"></table></div>
+</div>
+</section>
+
+<div class="brand-strip">
+  <span>Engineered &amp; Developed</span>
+  <span class="brand-sep">|</span>
+  <span class="brand-name">Eng. Ahmed Labib</span>
+</div>
+
+<script>
+const DATA=__DATA_JSON__;
+const TENDERS=DATA.tenders||[], HEALTH=DATA.health||[], GCC=DATA.gcc||[], AFRICA=DATA.africa||[],
+      REGIONS=DATA.regions||{}, WATCH=DATA.watch||{}, RUNS=DATA.runs||[], GAPS=DATA.authorities_without_url||[];
+const URLSTATE={};HEALTH.forEach(h=>{if(h.url)URLSTATE[h.url]=h});
+const $=id=>document.getElementById(id), uniq=a=>[...new Set(a.filter(x=>x&&String(x).trim()))].sort();
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const kb=b=>(b==null||b==="")?"—":(b>=1048576?(b/1048576).toFixed(1)+" MB":(b/1024).toFixed(1)+" KB");
+const ts=v=>v?new Date(v).toLocaleString():"—";
+
+function pillState(v){
+  const g={watched_ok:"pill-green",watched_no_rows:"pill-blue",js_required:"pill-orange",
+    blocked_robots:"pill-red",timeout:"pill-red",tls_error:"pill-red",dns_error:"pill-red",conn_error:"pill-red",
+    http_error:"pill-red",redirected_to_login:"pill-red",not_checked:"pill-blue"};
+  const bad=String(v||"").startsWith("http_");
+  return `<span class="pill ${bad?"pill-red":(g[v]||"pill-yellow")}">${esc(v||"—")}</span>`;
+}
+function pillUrgency(v){
+  const m={Critical:"pill-red",High:"pill-orange",Medium:"pill-yellow",Normal:"pill-green",Closed:"pill-blue"};
+  return `<span class="pill ${m[v]||"pill-blue"}">${esc(v||"—")}</span>`;
+}
+function pillVerify(v){
+  const cls=(v==="Official"||v==="Direct corporate"||v==="International")?"pill-green":(v==="Aggregator lead"?"pill-yellow":"pill-red");
+  return `<span class="pill ${cls}">${esc(v||"—")}</span>`;
+}
+function tick(){
+  const last=new Date(WATCH.last_checked), now=new Date();
+  $("lastChecked").textContent=isNaN(last)?"Not yet run":last.toLocaleString();
+  $("cycleLabel").textContent=WATCH.interval_minutes?WATCH.interval_minutes+" min":"one-shot";
+  if(!WATCH.loop_active){$("countdown").textContent=WATCH.mode==="loop"?"loop stopped":"not scheduled";return}
+  const iv=Math.max(1,Number(WATCH.interval_minutes||60))*60000;
+  let next=new Date(WATCH.next_check); if(isNaN(next))next=new Date(now.getTime()+iv);
+  const lag=now.getTime()-next.getTime();
+  if(lag>iv*2){$("countdown").textContent="overdue";return}
+  const ms=Math.max(0,next.getTime()-now.getTime());
+  const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/60000),s=Math.floor((ms%60000)/1000);
+  $("countdown").textContent=WATCH.loop_active?(String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")):"not scheduled";
+}
+function fmtAge(ms){
+  if(ms<0)ms=0;
+  const m=Math.floor(ms/60000);
+  if(m<1)return "just now";
+  if(m<60)return m+"m";
+  const h=Math.floor(m/60),rm=m%60;
+  return h+"h "+rm+"m";
+}
+function tickFresh(){
+  const el=$("freshChip");if(!el)return;
+  const gen=new Date(DATA.generated_at);
+  if(isNaN(gen)){el.textContent="unknown";return}
+  el.title="Snapshot written "+gen.toLocaleString();
+  const iv=Math.max(5,Number(WATCH.interval_minutes||60)),age=Date.now()-gen.getTime();
+  const mins=age/60000;
+  el.textContent=(mins>iv*1.5?"⚠ ":"")+fmtAge(age)+" old";
+  el.style.color=mins>iv*2.2?"#ef4444":(mins>iv*1.5?"#f59e0b":"#22c55e");
+  el.title+=(mins>iv*2.2?" — STALE: no fresh check cycle has completed recently.":"");
+}
+tick();setInterval(tick,1000);
+tickFresh();setInterval(tickFresh,60000);
+
+function fill(id,vals){(vals||[]).forEach(v=>{const el=$(id);if(el)el.insertAdjacentHTML("beforeend",`<option>${esc(v)}</option>`)})}
+fill("country",uniq(TENDERS.map(x=>x.country)));fill("status",uniq(TENDERS.map(x=>x.status)));fill("urgency",uniq(TENDERS.map(x=>x.urgency)));
+fill("verification",uniq(TENDERS.map(x=>x.verification_status)));fill("sector",uniq(TENDERS.map(x=>x.sector)));
+fill("queueUrgency",uniq(TENDERS.map(x=>x.urgency)));fill("queueCountry",uniq(TENDERS.map(x=>x.country)));
+fill("siteCountry",uniq(HEALTH.map(x=>x.country)));
+fill("africaRegion",uniq(AFRICA.map(x=>x.region_group)));fill("africaCountry",uniq(AFRICA.map(x=>x.country)));
+fill("gccCountry",uniq(GCC.map(x=>x.gcc_country)));fill("gccType",uniq(GCC.map(x=>x.type)));
+Object.keys(REGIONS).forEach(v=>$("regionCountry").insertAdjacentHTML("beforeend",`<option>${esc(v)}</option>`));
+
+function filtered(){
+  const vals={country:$("country").value,status:$("status").value,urgency:$("urgency").value,
+    verification_status:$("verification").value,sector:$("sector").value};
+  const q=$("search").value.trim().toLowerCase();
+  return TENDERS.filter(r=>{
+    for(const[k,v]of Object.entries(vals))if(v&&r[k]!==v)return false;
+    if(q){const h=[r.title,r.issuer,r.region,r.city,r.reference,r.source_name].join(" ").toLowerCase();if(!h.includes(q))return false}
+    return true});
+}
+
+function render(){
+  const rows=filtered().sort((a,b)=>(b.attention_score||0)-(a.attention_score||0));
+  $("kTotal").textContent=rows.length;
+  $("kOpen").textContent=rows.filter(x=>x.status==="Open").length;
+  $("kChanged").textContent=rows.filter(x=>x.is_new||x.is_updated).length;
+  $("kUrgent").textContent=rows.filter(x=>["Critical","High"].includes(x.urgency)).length;
+  $("kSites").textContent=HEALTH.length;
+  const ok=HEALTH.filter(h=>h.watched_last_turn).length;$("okSites").textContent=ok+"/"+HEALTH.length;
+  $("provNote").innerHTML=`Real check snapshot: <b>${esc(ts(DATA.generated_at))}</b> — ${HEALTH.length} sources probed, <b>${ok}</b> watched OK, ${HEALTH.length-ok} failed/limited (see Watched Sites and Run Log tabs). `
+    +`${GAPS.length} registry authorities still have no public URL and cannot be watched yet (Run Log tab). `
+    +`Tenders below were extracted only from official/real responses; nothing is invented. Scoring rule: ${esc(DATA.scoring_note||"")}`;
+  $("execContent").innerHTML=rows.slice(0,6).map(r=>`<div class="card"><b>${esc(r.country)} — ${esc(r.title)}</b>
+    <div class="small">${esc(r.issuer)} · ${esc(r.city||r.region||"")} · Ref ${esc(r.reference||"—")}</div>
+    <div class="small">Urgency ${esc(r.urgency)} · Attention ${r.attention_score} · Verification ${esc(r.verification_status)} · Deadline ${esc(r.deadline||"—")}</div>
+    <div class="small">Evidence: ${esc(r.how_found)} · ${esc(r.source_name)} (${r.evidence_http||"—"}, ${r.evidence_rows||0} rows)</div>
+    <div class="small">Next: ${esc(r.next_action)}</div>${r.source_url?`<a class="btn" target="_blank" href="${esc(r.source_url)}">Open source ↗</a>`:""}</div>`).join("")||`<div class="card">No tender rows extracted in this snapshot. Run Watcher.py and check Run Log.</div>`;
+  renderQueueTable(rows);
+  $("cards").innerHTML=rows.map(r=>`<div class="card"><div><span class="badge">${esc(r.country||"")}</span><span class="badge">${esc(r.category||"")}</span><span class="badge">${esc(r.status||"")}</span><span class="badge">${esc(r.urgency||"")}</span></div><h3>${esc(r.title||"")}</h3><div class="small"><b>${esc(r.issuer||"")}</b> · ${esc([r.city,r.region].filter(Boolean).join(" / "))} · Ref ${esc(r.reference||"—")}</div><div class="small">Deadline <b>${esc(r.deadline||"—")}</b>${r.remaining_days!=null?" · "+r.remaining_days+" days left":""}</div><div class="small">How it came: <b>${esc(r.source_type||"")}</b> via <b>${esc(r.source_name||"")}</b> (${esc(r.how_found||"")})</div><div class="small">Next action: <b>${esc(r.next_action||"")}</b></div>${r.source_url?`<a class="btn" target="_blank" href="${esc(r.source_url)}">Open source ↗</a>`:""}</div>`).join("");
+}
+
+let queuePage=1, sitePage=1, africaPage=1, gccPage=1,
+    queueSort={key:"attention_score",dir:-1}, siteSort={key:"country",dir:1},
+    africaSort={key:"region_group",dir:1}, gccSort={key:"gcc_country",dir:1};
+const NUMKEYS=["attention_score","remaining_days","http_status","elapsed_ms","bytes","rows_found","duration_s","sources_total","sources_ok","sources_failed","records_total","records_new","records_changed","run_no"];
+
+function cmp(a,b,key,dir){
+  let x=a[key],y=b[key];
+  if(key==="deadline"){x=new Date(x||"9999-12-31").getTime();y=new Date(y||"9999-12-31").getTime();}
+  else if(NUMKEYS.includes(key)){x=Number(x);y=Number(y);x=isNaN(x)?-1:x;y=isNaN(y)?-1:y;}
+  else if(typeof x==="string"||typeof y==="string"){x=String(x||"").toLowerCase();y=String(y||"").toLowerCase();}
+  if(x<y)return -1*dir;if(x>y)return 1*dir;return 0;
+}
+function sortableHead(label,key,scope){
+  const state=scope==="queue"?queueSort:(scope==="site"?siteSort:(scope==="africa"?africaSort:gccSort));
+  const mark=state.key===key?(state.dir===1?"▲":"▼"):"↕";
+  return `<th data-key="${key}" data-scope="${scope}">${label}<span class="sortmark">${mark}</span></th>`;
+}
+function bindSort(){
+  document.querySelectorAll("th[data-key]").forEach(th=>th.onclick=()=>{
+    const scope=th.dataset.scope,key=th.dataset.key;
+    const st=scope==="queue"?queueSort:(scope==="site"?siteSort:(scope==="africa"?africaSort:gccSort));
+    if(st.key===key)st.dir*=-1;else{st.key=key;st.dir=1}
+    if(scope==="queue"){queuePage=1;renderQueueTable(filtered())}else if(scope==="site"){sitePage=1;renderSites()}else if(scope==="africa"){africaPage=1;renderAfrica()}else{gccPage=1;renderGCC()}
+  });
+}
+function renderQueueTable(baseRows){
+  let rows=[...baseRows];
+  const q=($("queueSearch")?.value||"").toLowerCase().trim();
+  const urg=$("queueUrgency")?.value||"", country=$("queueCountry")?.value||"";
+  rows=rows.filter(r=>{
+    if(urg&&r.urgency!==urg)return false;if(country&&r.country!==country)return false;
+    if(q&&!([r.title,r.issuer,r.city,r.region,r.next_action,r.reference].join(" ").toLowerCase().includes(q)))return false;
+    return true;
+  });
+  rows.sort((a,b)=>cmp(a,b,queueSort.key,queueSort.dir));
+  const size=Number($("queuePageSize")?.value||25), pages=Math.max(1,Math.ceil(rows.length/size));
+  queuePage=Math.min(queuePage,pages);
+  const pageRows=rows.slice((queuePage-1)*size,queuePage*size);
+  $("queueCount").textContent=`${rows.length} real records`;
+  $("queuePageInfo").textContent=`Page ${queuePage} of ${pages}`;
+  $("queuePrev").disabled=queuePage<=1;$("queueNext").disabled=queuePage>=pages;
+  const head="<thead><tr>"+
+    sortableHead("Attention","attention_score","queue")+
+    sortableHead("Urgency","urgency","queue")+
+    sortableHead("Country","country","queue")+
+    sortableHead("Location","city","queue")+
+    sortableHead("Opportunity","title","queue")+
+    sortableHead("Issuer","issuer","queue")+
+    sortableHead("Deadline","deadline","queue")+
+    sortableHead("Verification","verification_status","queue")+
+    "<th>Next action</th><th>Extracted via</th><th>Source</th></tr></thead>";
+  const body="<tbody>"+pageRows.map(r=>{
+    const cls=r.urgency==="Critical"?"row-critical":r.urgency==="High"?"row-high":r.urgency==="Medium"?"row-medium":"";
+    const score=Math.max(0,Math.min(100,Number(r.attention_score||0)));
+    return `<tr class="${cls}">
+     <td><b>${score}</b><div class="scorebar"><span style="width:${score}%"></span></div></td>
+     <td>${pillUrgency(r.urgency)}</td>
+     <td>${esc(r.country||"")}</td>
+     <td>${esc(r.city||"")}<span class="table-sub">${esc(r.region||"")}</span></td>
+     <td class="table-title-cell">${esc(r.title||"")}${r.is_new?' <span class="pill pill-green">NEW</span>':(r.is_updated?' <span class="pill pill-yellow">UPDATED</span>':"")}<span class="table-sub">Ref ${esc(r.reference||"—")}</span></td>
+     <td>${esc(r.issuer||"")}</td>
+     <td>${esc(r.deadline||"—")}<span class="table-sub">${r.remaining_days!=null?r.remaining_days+" days left":""}</span></td>
+     <td>${pillVerify(r.verification_status)}</td>
+     <td>${esc(r.next_action||"")}</td>
+     <td><span class="pill pill-blue">${esc(r.how_found||"")}</span></td>
+     <td>${r.source_url?`<a class="urlbtn" href="${esc(r.source_url)}" target="_blank">Open ↗</a>`:"—"}</td>
+    </tr>`;
+  }).join("")+"</tbody>";
+  $("queueTable").innerHTML=head+body;bindSort();
+}
+function renderSites(){
+  let rows=[...HEALTH];
+  const q=($("siteSearch")?.value||"").toLowerCase().trim();
+  const country=$("siteCountry")?.value||"", state=$("siteWatchState")?.value||"";
+  rows=rows.filter(r=>{
+    if(country&&r.country!==country)return false;
+    if(state==="yes"&&!r.watched_last_turn)return false;if(state==="no"&&r.watched_last_turn)return false;
+    if(q&&!([r.client_name,r.source_name,r.url,r.health_state,r.error].join(" ").toLowerCase().includes(q)))return false;
+    return true;
+  });
+  rows.sort((a,b)=>cmp(a,b,siteSort.key,siteSort.dir));
+  const size=Number($("sitePageSize")?.value||25),pages=Math.max(1,Math.ceil(rows.length/size));
+  sitePage=Math.min(sitePage,pages);
+  const pageRows=rows.slice((sitePage-1)*size,sitePage*size);
+  const ok=rows.filter(r=>r.watched_last_turn).length;
+  $("siteCount").textContent=`${rows.length} sources • watched OK ${ok} • failed/limited ${rows.length-ok}`;
+  $("sitePageInfo").textContent=`Page ${sitePage} of ${pages}`;
+  $("sitePrev").disabled=sitePage<=1;$("siteNext").disabled=sitePage>=pages;
+  const head="<thead><tr>"+
+    sortableHead("Last turn","watched_last_turn","site")+
+    sortableHead("Country","country","site")+
+    sortableHead("Client / Issuer","client_name","site")+
+    sortableHead("Watched site","source_name","site")+
+    sortableHead("Class","source_class","site")+
+    sortableHead("HTTP","http_status","site")+
+    sortableHead("ms","elapsed_ms","site")+
+    sortableHead("KB","bytes","site")+
+    sortableHead("Rows","rows_found","site")+
+    sortableHead("Changed","changed_last_run","site")+
+    sortableHead("State","health_state","site")+
+    sortableHead("Last checked","last_checked","site")+
+    "<th>Evidence / error</th><th>URL</th></tr></thead>";
+  const body="<tbody>"+pageRows.map(r=>`<tr class="${r.watched_last_turn?"row-ok":"row-critical"}">
+   <td>${r.watched_last_turn?'<span class="pill pill-green">✅ Watched</span>':'<span class="pill pill-red">❌ Not watched</span>'}</td>
+   <td>${esc(r.country||"")}</td>
+   <td class="table-title-cell">${esc(r.client_name||"")}</td>
+   <td>${esc(r.source_name||"")}</td>
+   <td>${esc(r.source_class||"")}</td>
+   <td>${r.http_status??"—"}</td>
+   <td>${r.elapsed_ms??"—"}</td>
+   <td>${kb(r.bytes)}</td>
+   <td>${r.rows_found??0}</td>
+   <td>${r.changed_last_run?'<span class="pill pill-yellow">Δ changed</span>':"—"}</td>
+   <td>${pillState(r.health_state)}</td>
+   <td>${esc(ts(r.last_checked))}</td>
+   <td>${esc(r.error||r.page_title||"")}</td>
+   <td>${r.url?`<a class="urlbtn" href="${esc(r.url)}" target="_blank">Open ↗</a>`:"—"}</td>
+  </tr>`).join("")+"</tbody>";
+  $("sitesTable").innerHTML=head+body;bindSort();
+}
+function renderGCC(){
+  let rows=[...GCC];
+  const q=($("gccSearch")?.value||"").toLowerCase().trim();
+  const country=$("gccCountry")?.value||"", type=$("gccType")?.value||"";
+  rows=rows.filter(r=>{
+    if(country&&r.gcc_country!==country)return false;
+    if(type&&r.type!==type)return false;
+    if(q&&!([r.name,r.local_name,r.scope,r.type,r.gcc_country].join(" ").toLowerCase().includes(q)))return false;
+    return true;
+  });
+  rows.sort((a,b)=>cmp(a,b,gccSort.key,gccSort.dir));
+  const size=Number($("gccPageSize")?.value||25),pages=Math.max(1,Math.ceil(rows.length/size));
+  gccPage=Math.min(gccPage,pages);
+  const pageRows=rows.slice((gccPage-1)*size,gccPage*size);
+  $("gccCount").textContent=`${rows.length} GCC authorities — registry reference list`;
+  $("gccPageInfo").textContent=`Page ${gccPage} of ${pages}`;
+  $("gccPrev").disabled=gccPage<=1;$("gccNext").disabled=gccPage>=pages;
+  const head="<thead><tr>"+
+    sortableHead("Country","gcc_country","gcc")+
+    sortableHead("Authority / Client","name","gcc")+
+    sortableHead("Arabic / Local name","local_name","gcc")+
+    sortableHead("Type","type","gcc")+
+    "<th>Typical procurement scope</th>"+
+    sortableHead("Priority","priority","gcc")+
+    "<th>Official URL</th></tr></thead>";
+  const body="<tbody>"+pageRows.map(r=>{
+    const st=URLSTATE[r.url];
+    return `<tr>
+     <td>${esc(r.gcc_country||"")}</td>
+     <td class="table-title-cell">${esc(r.name||"")}</td>
+     <td>${esc(r.local_name||"—")}</td>
+     <td>${esc(r.type||"")}</td>
+     <td>${esc(r.scope||"")}</td>
+     <td><span class="pill ${r.priority==="Priority"?"pill-green":"pill-blue"}">${esc(r.priority||"")}</span></td>
+     <td>${r.url?`<a class="urlbtn" href="${esc(r.url)}" target="_blank">Open ↗</a>${st?` <span class="pill ${st.watched_last_turn?"pill-green":"pill-red"}">${st.watched_last_turn?"watched":"failed"}</span>`:""}`:'<span class="pill pill-yellow">no URL yet</span>'}</td>
+    </tr>`}).join("")+"</tbody>";
+  $("gccTable").innerHTML=head+body;bindSort();
+}
+function renderAfrica(){
+  let rows=[...AFRICA];
+  const q=($("africaSearch")?.value||"").toLowerCase().trim();
+  const region=$("africaRegion")?.value||"", country=$("africaCountry")?.value||"";
+  rows=rows.filter(r=>{
+    if(region&&r.region_group!==region)return false;
+    if(country&&r.country!==country)return false;
+    if(q&&!([r.name,r.local_name,r.scope,r.type,r.country,r.region_group].join(" ").toLowerCase().includes(q)))return false;
+    return true;
+  });
+  rows.sort((a,b)=>cmp(a,b,africaSort.key,africaSort.dir));
+  const size=Number($("africaPageSize")?.value||25),pages=Math.max(1,Math.ceil(rows.length/size));
+  africaPage=Math.min(africaPage,pages);
+  const pageRows=rows.slice((africaPage-1)*size,africaPage*size);
+  $("africaCount").textContent=`${rows.length} authorities — registry reference list`;
+  $("africaPageInfo").textContent=`Page ${africaPage} of ${pages}`;
+  $("africaPrev").disabled=africaPage<=1;$("africaNext").disabled=africaPage>=pages;
+  const head="<thead><tr>"+
+    sortableHead("Region","region_group","africa")+
+    sortableHead("Country","country","africa")+
+    sortableHead("Authority / Client","name","africa")+
+    sortableHead("Local name","local_name","africa")+
+    sortableHead("Type","type","africa")+
+    "<th>Typical procurement scope</th>"+
+    sortableHead("Priority","priority","africa")+
+    "<th>Official URL</th></tr></thead>";
+  const body="<tbody>"+pageRows.map(r=>{
+    const st=URLSTATE[r.url];
+    return `<tr>
+     <td>${esc(r.region_group||"")}</td>
+     <td>${esc(r.country||"")}</td>
+     <td class="table-title-cell">${esc(r.name||"")}</td>
+     <td>${esc(r.local_name||"—")}</td>
+     <td>${esc(r.type||"")}</td>
+     <td>${esc(r.scope||"")}</td>
+     <td><span class="pill ${r.priority==="Priority"?"pill-green":"pill-blue"}">${esc(r.priority||"")}</span></td>
+     <td>${r.url?`<a class="urlbtn" href="${esc(r.url)}" target="_blank">Open ↗</a>${st?` <span class="pill ${st.watched_last_turn?"pill-green":"pill-red"}">${st.watched_last_turn?"watched":"failed"}</span>`:""}`:'<span class="pill pill-yellow">no URL yet</span>'}</td>
+    </tr>`}).join("")+"</tbody>";
+  $("africaTable").innerHTML=head+body;bindSort();
+}
+function renderHealth(){
+  const cols=["country","source_name","coverage_status","watched_last_turn","health_state","http_status","rows_found","error","notes"];
+  $("healthTable").innerHTML="<thead><tr>"+cols.map(c=>`<th>${esc(c)}</th>`).join("")+"</tr></thead><tbody>"
+    +HEALTH.map(r=>"<tr class='"+((r.watched_last_turn)?"row-ok":"row-critical")+"'>"+cols.map(c=>{
+      let v=r[c];if(c==="watched_last_turn")v=v?"✅":"❌";if(c==="health_state")return `<td>${pillState(v)}</td>`;
+      return `<td>${v==null?"":esc(v)}</td>`}).join("")+"</tr>").join("")+"</tbody>";
+}
+function renderRuns(){
+  const last=RUNS[RUNS.length-1]||{};
+  $("runLog").innerHTML=`<b>Latest real cycle:</b> ${esc(ts(last.started))} → ${esc(ts(last.finished))} · duration ${last.duration_s??"—"}s · mode ${esc(last.mode||"—")} · sources ${last.sources_total??0} (OK ${last.sources_ok??0} / failed ${last.sources_failed??0}) · rows ${last.records_total??0} · new ${last.records_new??0} · changed ${last.records_changed??0}<br>`
+   +`<span class="small">Method: each source is fetched live (robots.txt respected, honest User-Agent). Sources that fail show the real error, never a fabricated success. Tenders are extracted only from official portals with real fields (reference, deadline, issuer, detail URL). Change detection compares content hashes and per-tender fingerprints across runs. `
+   +`Scoring rule: ${esc(DATA.scoring_note||"")}</span>`;
+  const cap=RUNS.slice(-50).reverse();
+  const cols=["run_no","started","duration_s","mode","sources_total","sources_ok","sources_failed","records_total","records_new","records_changed"];
+  $("runsTable").innerHTML="<thead><tr>"+cols.map(c=>`<th>${esc(c)}</th>`).join("")+"</tr></thead><tbody>"
+    +cap.map(r=>"<tr>"+cols.map(c=>`<td>${c==="started"?esc(ts(r[c])):esc(r[c]??"")}</td>`).join("")+"</tr>").join("")+"</tbody>";
+  const groups={};GAPS.forEach(g=>{(groups[g.country]=groups[g.country]||[]).push(g)});
+  $("gapNote").innerHTML=`<b>Registry authorities with no public URL — cannot be watched yet (${GAPS.length}):</b> <span class="small">These exist in the delivered registry but no official URL was published with it. Add real URLs to sources.json to bring them under real watching. They are not counted as watched anywhere in this dashboard.</span>`;
+  $("gapTable").innerHTML="<thead><tr><th>Country</th><th>List</th><th>Authority / Client</th><th>Class</th><th>URL</th></tr></thead><tbody>"
+    +Object.entries(groups).map(([c,arr])=>arr.map((g,i)=>`<tr><td>${esc(c)}</td><td>${esc(g.list_group||"")}</td><td>${esc(g.client_name||"")}</td><td>${esc(g.source_class||"")}</td><td><span class="pill pill-yellow">no URL yet</span></td></tr>`).join("")).join("")+"</tbody>";
+}
+function renderRegions(){const c=$("regionCountry").value,obj=REGIONS[c]||{};$("regionCards").innerHTML=Object.entries(obj).map(([r,cities])=>`<div class="region"><b>${esc(r)}</b><div class="small" style="margin-top:6px">${cities.map(esc).join(" • ")}</div></div>`).join("")}
+
+["country","status","urgency","verification","sector","search"].forEach(id=>$(id).addEventListener("input",()=>{queuePage=1;render()}));
+["queueSearch","queueUrgency","queueCountry","queuePageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{queuePage=1;renderQueueTable(filtered())}));
+["siteSearch","siteCountry","siteWatchState","sitePageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{sitePage=1;renderSites()}));
+["africaSearch","africaRegion","africaCountry","africaPageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{africaPage=1;renderAfrica()}));
+["gccSearch","gccCountry","gccType","gccPageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{gccPage=1;renderGCC()}));
+$("queuePrev").addEventListener("click",()=>{queuePage=Math.max(1,queuePage-1);renderQueueTable(filtered())});
+$("queueNext").addEventListener("click",()=>{queuePage+=1;renderQueueTable(filtered())});
+$("sitePrev").addEventListener("click",()=>{sitePage=Math.max(1,sitePage-1);renderSites()});
+$("siteNext").addEventListener("click",()=>{sitePage+=1;renderSites()});
+$("africaPrev").addEventListener("click",()=>{africaPage=Math.max(1,africaPage-1);renderAfrica()});
+$("africaNext").addEventListener("click",()=>{africaPage+=1;renderAfrica()});
+$("gccPrev").addEventListener("click",()=>{gccPage=Math.max(1,gccPage-1);renderGCC()});
+$("gccNext").addEventListener("click",()=>{gccPage+=1;renderGCC()});
+$("regionCountry").addEventListener("change",renderRegions);
+document.querySelectorAll(".tabbtn").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active")}));
+render();renderSites();renderGCC();renderAfrica();renderHealth();renderRuns();renderRegions();
+// Live refresh — when served by server.py (or any host exposing /api/data), poll for a
+// newer real snapshot and reload to it. Opened offline from disk, the embedded snapshot
+// stays as-is; nothing here ever fabricates data.
+(function(){
+  let dismissedFor=null,busy=false;
+  function toast(raw){
+    busy=true;
+    const gen=new Date(raw);
+    const box=document.createElement("div");
+    box.style.cssText="position:fixed;right:18px;bottom:18px;z-index:9999;background:#0f1c33;border:1px solid #2b4a7d;border-radius:12px;padding:12px 14px;max-width:370px;box-shadow:0 8px 24px rgba(0,0,0,.55);color:#e8eefb;font:13px/1.5 system-ui,Segoe UI,Arial";
+    const t=document.createElement("div");t.innerHTML="<b>New watch results are in.</b>";
+    const s=document.createElement("div");s.style.marginTop="4px";
+    s.appendChild(document.createTextNode("Fresh snapshot "+gen.toLocaleString()+" — reloading in "));
+    const cd=document.createElement("b");cd.textContent="10";s.appendChild(cd);
+    s.appendChild(document.createTextNode("s."));
+    const go=document.createElement("button"),no=document.createElement("button");
+    go.textContent="Reload now";no.textContent="Dismiss";
+    for(const b of [go,no]){b.style.cssText="margin:8px 8px 0 0;background:#174f91;color:#fff;border:0;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px"}
+    box.append(t,s,go,no);document.body.appendChild(box);
+    function reload(){clearInterval(iv);location.reload()}
+    let n=10;const iv=setInterval(()=>{n--;if(n<=0)reload();else cd.textContent=String(n)},1000);
+    go.onclick=reload;
+    no.onclick=()=>{clearInterval(iv);dismissedFor=raw;busy=false;box.remove()};
+  }
+  async function check(){
+    try{
+      const r=await fetch("/api/data",{cache:"no-store"});if(!r.ok)return;
+      const d=await r.json();if(!d||!d.generated_at||busy)return;
+      if(d.generated_at===DATA.generated_at||d.generated_at===dismissedFor)return;
+      toast(d.generated_at);
+    }catch(e){/* static/file:// host — embedded snapshot is the current truth */}
+  }
+  setTimeout(check,1500);
+  setInterval(check,60000);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)check()});
+})();
+</script></body></html>
