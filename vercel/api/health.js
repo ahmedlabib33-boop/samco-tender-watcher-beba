@@ -19,7 +19,7 @@ module.exports = (req, res) => {
     snapshot_generated_at: generated,
     snapshot_age_seconds: ageSeconds,
     stale,
-    note: "This deployment serves the snapshot bundled at deploy time; the local watcher (run.bat) produces fresh snapshots.",
+    note: "This deployment serves the snapshot bundled at deploy time; the scheduled watcher refreshes it every hour.",
     engine: { mode: w.mode || null, run_no: w.run_no ?? null, loop_active: !!w.loop_active },
     sources: {
       total: w.sources_total ?? null,
