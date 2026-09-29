@@ -15,17 +15,14 @@ if not exist "logs" mkdir "logs"
 
 echo ============================================================
 echo  SAMCO Construction Opportunity Watcher - local mode
-echo  - engine window: real HTTP checks of every registered site
+echo  - checks run automatically every hour (Windows task "SAMCO Watcher hourly")
 echo  - dashboard:     http://127.0.0.1:4207/  (opens automatically)
-echo  Close the engine window (or Ctrl+C here) to stop.
+echo  This window only shows the dashboard; Ctrl+C here to close it.
 echo ============================================================
-
-echo Starting watcher engine loop (real checks + headless-Chrome render pass)...
-start "SAMCO Watcher engine" cmd /k python "Watcher.py" --loop --render --interval 60
 
 echo Starting dashboard server on http://127.0.0.1:4207/ ...
 python "server.py" --host 127.0.0.1 --port 4207 --open
 
 echo.
-echo Dashboard server stopped. The engine window may still be watching - close it to stop the loop.
+echo Dashboard server stopped. The hourly checks keep running in the background.
 pause

@@ -658,7 +658,7 @@ async function watchNowCloud(host,b){
   }catch(e){
     b.disabled=false;b.textContent="🔄 Watch now — run a real check";
     host.innerHTML=`<b>Cloud live check could not run:</b> ${esc(String(e.message||e))}
-     <div class="small" style="margin-top:6px">The full engine pass (all sources, extraction, change detection) runs automatically every hour in the cloud and this site refreshes after each one.</div>`;
+     <div class="small" style="margin-top:6px">The full engine pass (all sources, extraction, change detection) runs automatically every hour and this site refreshes after each one.</div>`;
     return;
   }
   const rows=j.results||[], nf=rows.filter(r=>r.failed), okc=rows.filter(r=>r.ok);
