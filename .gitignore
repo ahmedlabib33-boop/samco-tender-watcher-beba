@@ -11,3 +11,9 @@ vercel/.vercel/
 # OS noise
 Thumbs.db
 .DS_Store
+
+# generated every cycle by Watcher.py (the cloud run rebuilds them before each deploy)
+dashboard.html
+tenders.json
+vercel/index.html
+vercel/data/latest.json

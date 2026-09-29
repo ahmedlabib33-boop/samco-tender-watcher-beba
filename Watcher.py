@@ -50,7 +50,6 @@ TENDERS_FILE = ROOT / "tenders.json"
 STATE_DIR = ROOT / "state"
 STATE_FILE = STATE_DIR / "state.json"
 LOG_FILE = ROOT / "logs" / "watcher.log"
-NOTIFY_FILE = ROOT / "notify.json"
 LOCK_FILE = STATE_DIR / "engine.lock"
 WEB_DIR = ROOT / "vercel"
 WEB_DATA_FILE = WEB_DIR / "data" / "latest.json"
@@ -752,74 +751,6 @@ def apply_scoring(t, today, baseline):
     return t
 
 
-# ------------------------------------------------------- notifications (real push)
-URGENCY_RANK = {"Critical": 2, "High": 1, "Medium": 0, "Normal": 0, "Closed": -1}
-
-
-def load_notify_cfg():
-    try:
-        cfg = json.loads(NOTIFY_FILE.read_text(encoding="utf-8"))
-        return cfg if isinstance(cfg, dict) else {}
-    except Exception:
-        return {}
-
-
-def send_ntfy(cfg, title, body, priority=3, tags=None):
-    """One real HTTP POST to the configured ntfy server (JSON publish covers UTF-8
-    titles cleanly). Returns exactly what the server answered — never a fake success."""
-    topic = (cfg.get("ntfy_topic") or "").strip()
-    if not topic:
-        return {"sent": False, "error": "no ntfy_topic configured in notify.json", "at": now_iso()}
-    payload = {"topic": topic, "title": title, "message": body, "priority": int(priority)}
-    if cfg.get("click_url"):
-        payload["click"] = cfg["click_url"]
-    if tags:
-        payload["tags"] = tags
-    try:
-        r = requests.post(cfg.get("ntfy_server") or "https://ntfy.sh", json=payload, timeout=20)
-        if r.status_code == 200 and '"id"' in r.text:
-            return {"sent": True, "at": now_iso(), "http_status": r.status_code, "topic": topic}
-        return {"sent": False, "at": now_iso(), "http_status": r.status_code,
-                "topic": topic, "error": "ntfy answered HTTP %s: %s" % (r.status_code, r.text[:160])}
-    except Exception as e:
-        return {"sent": False, "at": now_iso(), "topic": topic,
-                "error": "%s: %s" % (type(e).__name__, str(e)[:160])}
-
-
-def notify_cycle(cfg, records, run_rec):
-    """Send one push per cycle when this cycle produced new/changed tenders at or
-    above min_urgency. Cycles with nothing to report are recorded as an honest
-    'not sent' with the reason, never a silent skip."""
-    if not cfg.get("enabled"):
-        return {"sent": False, "at": now_iso(), "reason": "notifications disabled in notify.json"}
-    if not (cfg.get("ntfy_topic") or "").strip():
-        return {"sent": False, "at": now_iso(), "reason": "no ntfy_topic configured in notify.json"}
-    min_rank = URGENCY_RANK.get(cfg.get("min_urgency") or "High", 1)
-    picks = [t for t in records
-             if (t.get("is_new") or t.get("is_updated"))
-             and URGENCY_RANK.get(t.get("urgency"), -1) >= min_rank]
-    if not picks:
-        return {"sent": False, "at": now_iso(), "run_no": run_rec["run_no"],
-                "reason": "no new/changed %s tenders this cycle" % (cfg.get("min_urgency") or "High")}
-    picks.sort(key=lambda t: -t.get("attention_score", 0))
-    lines = []
-    for t in picks[:5]:
-        lines.append("- %s | %s | deadline %s | %s" % (
-            t.get("country") or "?", (t.get("title") or "")[:90],
-            t.get("deadline") or "not published", t.get("urgency") or ""))
-    if len(picks) > 5:
-        lines.append("...+%d more on the dashboard" % (len(picks) - 5))
-    body = ("Real check run #%d: %d new, %d changed on the watched sources.\n%s"
-            % (run_rec["run_no"], run_rec["records_new"], run_rec["records_changed"], "\n".join(lines)))
-    prio = 5 if any(t.get("urgency") == "Critical" for t in picks) else 4
-    res = send_ntfy(cfg, "%s — %d new/changed tender(s)" % (cfg.get("title_prefix") or "SAMCO Watcher", len(picks)),
-                    body, priority=prio, tags=["construction", "rotating_light" if prio == 5 else "bell"])
-    res["items"] = len(picks)
-    res["run_no"] = run_rec["run_no"]
-    res["min_urgency"] = cfg.get("min_urgency") or "High"
-    return res
-
-
 def run_cycle(args, state):
     started = now_iso()
     t0 = time.time()
@@ -890,18 +821,18 @@ def run_cycle(args, state):
     duration = round(time.time() - t0, 1)
 
     run_rec = {"run_no": run_no, "started": started, "finished": now_iso(), "duration_s": duration,
-               "mode": ("loop+render" if args.loop and args.render else "loop" if args.loop
-                        else "once+render" if args.render else "once"),
+               "mode": ("loop" if args.loop else "scheduled" if args.scheduled else "once")
+                       + ("+render" if args.render else ""),
                "sources_total": len(health), "sources_ok": ok, "sources_failed": len(health) - ok,
                "records_total": len(all_records), "records_new": new_n, "records_changed": upd_n,
                "baseline": baseline, "listing_items_tracked": len(all_items)}
     runs = (state.get("runs") or []) + [run_rec]
 
     next_check = None
-    if args.loop:
+    if args.loop or args.scheduled:
         next_check = (datetime.now(timezone.utc) + timedelta(minutes=args.interval)).isoformat()
     watch = {"last_checked": started, "next_check": next_check, "interval_minutes": args.interval,
-             "loop_active": bool(args.loop), "mode": run_rec["mode"], "run_no": run_no,
+             "loop_active": bool(args.loop or args.scheduled), "mode": run_rec["mode"], "run_no": run_no,
              "duration_s": duration, "sources_total": len(health), "sources_ok": ok,
              "sources_failed": len(health) - ok, "records_total": len(all_records),
              "records_new": new_n, "records_changed": upd_n, "baseline": baseline}
@@ -914,29 +845,12 @@ def run_cycle(args, state):
                             "last_status": h.get("http_status"), "last_rows": h.get("rows_found"),
                             "health_state": h.get("health_state"), "last_checked": h.get("last_checked")}
 
-    # real push notification for this cycle (honest result recorded either way)
-    notify_cfg = load_notify_cfg()
-    notify_last = notify_cycle(notify_cfg, all_records, run_rec)
-    notify_hist = (state.get("notify") or {}).get("history") or []
-    notify_hist = notify_hist + [notify_last]
-    log("notify: %s" % ("sent to ntfy topic %s" % notify_last.get("topic")
-                        if notify_last.get("sent") else "not sent — %s" % notify_last.get("reason")))
-
     data = {"generated_at": now_iso(), "watch": watch, "scoring_note": SCORING_NOTE,
             "work_type_note": WORK_TYPE_NOTE,
             "tenders": all_records, "health": health, "gcc": sources.get("gcc") or [],
             "africa": sources.get("africa") or [], "regions": sources.get("regions") or {},
             "runs": runs[-200:], "authorities_without_url": sources.get("authorities_without_url") or [],
-            "listing_items": all_items[:400],
-            "notify": {"enabled": bool(notify_cfg.get("enabled")),
-                       "provider": notify_cfg.get("provider") or "",
-                       "ntfy_server": notify_cfg.get("ntfy_server") or "https://ntfy.sh",
-                       "ntfy_topic": notify_cfg.get("ntfy_topic") or "",
-                       "min_urgency": notify_cfg.get("min_urgency") or "High",
-                       "click_url": notify_cfg.get("click_url") or "",
-                       "subscribe": notify_cfg.get("subscribe") or {},
-                       "note": notify_cfg.get("note") or "",
-                       "last": notify_last, "history": notify_hist[-50:]}}
+            "listing_items": all_items[:400]}
 
     tpl = TEMPLATE_FILE.read_text(encoding="utf-8")
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
@@ -946,8 +860,7 @@ def run_cycle(args, state):
         write_json(WEB_DATA_FILE, data)
     write_json(TENDERS_FILE, {"generated_at": data["generated_at"], "watch": watch,
                               "tenders": all_records, "health": health, "listing_items": all_items[:400]})
-    new_state = {"last_run": run_rec, "sources": src_mem, "tenders": mem, "runs": runs[-500:],
-                 "notify": {"history": notify_hist[-50:]}}
+    new_state = {"last_run": run_rec, "sources": src_mem, "tenders": mem, "runs": runs[-500:]}
     write_json(STATE_FILE, new_state)
     log("run #%d done — records %d (new %d, changed %d), dashboard written%s, %s"
         % (run_no, len(all_records), new_n, upd_n,
@@ -961,6 +874,9 @@ def main():
     ap.add_argument("--loop", action="store_true", help="keep running cycles")
     ap.add_argument("--interval", type=int, default=60, help="minutes between cycles in --loop mode")
     ap.add_argument("--render", action="store_true", help="headless-Chrome pass for JS/session sites")
+    ap.add_argument("--scheduled", action="store_true",
+                    help="single cycle started by an external hourly scheduler (GitHub Actions): "
+                         "reports the schedule as active with next_check = now + --interval")
     ap.add_argument("--render-limit", type=int, default=0, help="max pages rendered per cycle (0 = all render-flagged sources)")
     args = ap.parse_args()
 

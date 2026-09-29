@@ -22,7 +22,6 @@ DASHBOARD = ROOT / "dashboard.html"
 LATEST = ROOT / "vercel" / "data" / "latest.json"
 TENDERS = ROOT / "tenders.json"
 STATE = ROOT / "state" / "state.json"
-NOTIFY = ROOT / "notify.json"
 ENGINE = ROOT / "Watcher.py"
 ENGINE_LOCK = ROOT / "state" / "engine.lock"
 LOGFILE = ROOT / "logs" / "server.log"
@@ -111,35 +110,6 @@ def _watch_status():
             "started_ever": _WATCH["started_at"] is not None,
             "log_tail": _log_tail(WATCHNOW_LOG),
         }
-
-
-def _ntfy_publish(cfg, title, body, priority=3, tags=None):
-    """Real ntfy POST from the local server (same JSON publish the engine uses).
-    Returns exactly what ntfy answered - never a fabricated success."""
-    import urllib.request
-    topic = (cfg.get("ntfy_topic") or "").strip()
-    if not topic:
-        return {"sent": False, "error": "no ntfy_topic configured in notify.json"}
-    payload = {"topic": topic, "title": title, "message": body, "priority": int(priority)}
-    if cfg.get("click_url"):
-        payload["click"] = cfg["click_url"]
-    if tags:
-        payload["tags"] = tags
-    req = urllib.request.Request(("%s" % (cfg.get("ntfy_server") or "https://ntfy.sh")).rstrip("/"),
-                                 data=json.dumps(payload).encode("utf-8"),
-                                 headers={"Content-Type": "application/json"},
-                                 method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=20) as r:
-            text = r.read(400).decode("utf-8", "replace")
-            if r.status == 200 and '"id"' in text:
-                return {"sent": True, "at": datetime.now(timezone.utc).isoformat(),
-                        "http_status": r.status, "topic": topic}
-            return {"sent": False, "http_status": r.status, "topic": topic,
-                    "error": "ntfy answered HTTP %s: %s" % (r.status, text[:160])}
-    except Exception as e:
-        return {"sent": False, "topic": topic,
-                "error": "%s: %s" % (type(e).__name__, str(e)[:160])}
 
 
 def _health_payload():
@@ -252,11 +222,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlsplit(self.path).path
-        body = self._read_body()
+        self._read_body()
         if path == "/api/watch-now":
             self._post_watch_now()
-        elif path == "/api/notify-test":
-            self._post_notify_test(body)
         else:
             self._json(404, {"error": "not found"})
 
@@ -303,23 +271,6 @@ class Handler(BaseHTTPRequestHandler):
                              "snapshot_before": _WATCH["snapshot_before"],
                              "note": "real full cycle started: probing every source (+ headless-Chrome "
                                      "render pass). Takes about 5-8 minutes; the snapshot updates at the end."})
-
-    def _post_notify_test(self, body):
-        cfg = _read_json(NOTIFY) or {}
-        topic = (body.get("topic") or cfg.get("ntfy_topic") or "").strip()
-        if topic and topic != cfg.get("ntfy_topic"):
-            cfg = dict(cfg)
-            cfg["ntfy_topic"] = topic
-        if not cfg:
-            self._json(500, {"sent": False, "error": "notify.json missing or unreadable"})
-            return
-        res = _ntfy_publish(cfg, "%s — test notification" % (cfg.get("title_prefix") or "SAMCO Watcher"),
-                            "Test from the SAMCO Watcher dashboard. If you can read this on your phone, "
-                            "real High/Critical tender alerts will arrive the same way.",
-                            priority=3, tags=["construction", "bell"])
-        res["topic"] = topic
-        res["server"] = cfg.get("ntfy_server") or "https://ntfy.sh"
-        self._json(200 if res.get("sent") else 502, res)
 
     do_PUT = do_DELETE = do_PATCH = do_POST
 

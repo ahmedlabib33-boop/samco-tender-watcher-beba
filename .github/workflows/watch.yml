@@ -1,0 +1,86 @@
+# Hourly SAMCO watcher: one full real engine cycle (static fetch + headless-Chrome render
+# pass) on GitHub's servers, then publish the fresh snapshot to Vercel. Runs whether or
+# not any PC is switched on. Manual run: Actions tab -> "SAMCO watcher" -> Run workflow.
+name: SAMCO watcher
+
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: watcher
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install engine dependencies
+        run: pip install -r requirements.txt
+
+      # Novelty memory (which tenders were already seen) carried between hourly runs.
+      - name: Restore watcher state
+        uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: watcher-state-${{ github.run_id }}
+          restore-keys: watcher-state-
+
+      - name: Run one real check cycle
+        id: engine
+        run: python Watcher.py --once --render --scheduled --interval 60
+
+      - name: Save watcher state
+        if: steps.engine.outcome == 'success'
+        uses: actions/cache/save@v4
+        with:
+          path: state
+          key: watcher-state-${{ github.run_id }}
+
+      - name: Publish snapshot to Vercel
+        working-directory: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_DFUJoEX7bQtrFlhNCVTFXjxT
+          VERCEL_PROJECT_ID: prj_gWX9tI5t4Ea3UKADfTh1e9uHMuJp
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN secret is not set (repo Settings -> Secrets and variables -> Actions)"
+            exit 1
+          fi
+          test -s data/latest.json
+          npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+
+      # GitHub pauses scheduled workflows on repos with no activity for 60 days.
+      - name: Keep the hourly schedule alive
+        run: |
+          last=$(git log -1 --format=%ct)
+          if [ $(( $(date +%s) - last )) -gt $(( 45 * 86400 )) ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "keepalive: hourly watcher schedule"
+            git push
+          fi
+
+      - name: Upload engine log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watcher-log-${{ github.run_number }}
+          path: logs/watcher.log
+          if-no-files-found: ignore
+          retention-days: 7

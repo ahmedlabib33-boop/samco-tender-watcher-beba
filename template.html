@@ -98,17 +98,9 @@
 .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
   border-radius:50%;animation:sp 1s linear infinite;margin-right:8px;vertical-align:-2px}
 @keyframes sp{to{transform:rotate(360deg)}}
-.subbtn{display:inline-flex;align-items:center;gap:6px;margin:4px 8px 4px 0;padding:9px 13px;border-radius:10px;
-  background:#12233f;border:1px solid var(--line);color:#dbe7ff;text-decoration:none;font-size:13px;font-weight:600}
-.subbtn:hover{background:#182f54}
-.topicchip{display:inline-block;padding:5px 9px;border-radius:8px;background:#0a1325;border:1px solid var(--line);
-  font-family:ui-monospace,Consolas,monospace;font-size:13px;color:#ffd84d;user-select:all}
 .verdict{display:inline-block;padding:5px 9px;border-radius:9px;font-size:12px;font-weight:700;margin:6px 0}
 .verdict.ok{color:#93f0bb;background:rgba(40,199,111,.12);border:1px solid rgba(40,199,111,.3)}
 .verdict.bad{color:#ffaaaa;background:rgba(255,93,93,.12);border:1px solid rgba(255,93,93,.3)}
-details.howto{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:#0d1729;padding:10px 12px}
-details.howto summary{cursor:pointer;font-weight:700;color:#dbe7ff}
-details.howto ol{margin:8px 0 2px;padding-left:20px}
 @media(max-width:640px){
   .table-tools{align-items:stretch}
   .table-tools-left,.table-tools-right{width:100%}
@@ -136,7 +128,6 @@ details.howto ol{margin:8px 0 2px;padding-left:20px}
 
 <div class="actionrow">
  <button id="watchNow" class="actionbtn">🔄 Watch now — run a real check</button>
- <button id="notifyGo" class="actionbtn alt">🔔 Notifications (iOS / Android)</button>
  <span id="watchMsg" class="actmsg"></span>
 </div>
 <div id="watchPanel" class="card watchpanel" style="display:none"></div>
@@ -167,7 +158,6 @@ details.howto ol{margin:8px 0 2px;padding-left:20px}
 <button class="tabbtn" data-tab="africa">Africa Authorities</button>
 <button class="tabbtn" data-tab="runs">Run Log</button>
 <button class="tabbtn" data-tab="health">Coverage Health</button>
-<button class="tabbtn" data-tab="notify">🔔 Notifications</button>
 <button class="tabbtn" data-tab="where">Where</button>
 </div>
 
@@ -246,33 +236,6 @@ details.howto ol{margin:8px 0 2px;padding-left:20px}
 </section>
 
 <section id="health" class="tab"><div class="tablewrap"><table id="healthTable"></table></div></section>
-<section id="notify" class="tab">
-<div class="card">
-  <b>Real push notifications — iPhone, iPad, Android and web</b>
-  <div id="notifyHead" class="small" style="margin-top:6px"></div>
-  <div id="notifySubs" style="margin-top:10px"></div>
-  <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-    <button id="testNotify" class="actionbtn">📣 Send a test notification</button>
-    <button id="browserNotifyBtn" class="actionbtn alt">🖥️ Browser notifications here</button>
-    <span id="notifyMsg" class="actmsg"></span>
-  </div>
-  <div id="notifyResult" style="margin-top:10px"></div>
-  <details class="howto"><summary>How to get these alerts on your phone (2 minutes, free)</summary>
-    <ol>
-      <li>Install the official <b>ntfy</b> app on your phone — <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android (Play Store)</a> or <a href="https://apps.apple.com/us/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone / iPad (App Store)</a>.</li>
-      <li>In the app tap <b>+ Subscribe to topic</b> and enter the topic shown above — or just tap the "Open in app" button above on the phone itself.</li>
-      <li>That's it. A push arrives after each real check cycle <b>only when that cycle actually found new or changed tenders</b> at the configured urgency level. Nothing is ever sent "just to look active".</li>
-      <li>Treat the topic name like a shared secret: anyone who knows it could publish to it, so don't post it publicly.</li>
-    </ol>
-    <div class="small" style="margin-top:6px">Every attempt below is logged with the real answer from the push server (sent / not sent + reason). If a push fails you'll see the exact error here — it is never hidden.</div>
-  </details>
-</div>
-<div class="table-panel" style="margin-top:12px">
-  <div class="table-tools"><div class="table-tools-left"><b>Push history — every engine cycle, sent or not, with the reason</b></div></div>
-  <div class="tablewrap"><table id="notifyTable" class="pro-table"></table></div>
-</div>
-</section>
-
 <section id="where" class="tab"><select id="regionCountry" style="padding:10px;background:#0a1325;color:white;border:1px solid var(--line);border-radius:10px;margin-bottom:12px"></select><div id="regionCards"></div></section>
 </div>
 
@@ -297,7 +260,6 @@ details.howto ol{margin:8px 0 2px;padding-left:20px}
 const DATA=__DATA_JSON__;
 const TENDERS=DATA.tenders||[], HEALTH=DATA.health||[], GCC=DATA.gcc||[], AFRICA=DATA.africa||[],
       REGIONS=DATA.regions||{}, WATCH=DATA.watch||{}, RUNS=DATA.runs||[], GAPS=DATA.authorities_without_url||[];
-const NOTIFY=DATA.notify||{}, NHIST=NOTIFY.history||[];
 const IS_LOCAL=["127.0.0.1","localhost","::1",""].includes(location.hostname);
 const LOGO="data:image/jpeg;base64,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";
 const URLSTATE={};HEALTH.forEach(h=>{if(h.url)URLSTATE[h.url]=h});
@@ -639,64 +601,7 @@ function renderRuns(){
 }
 function renderRegions(){const c=$("regionCountry").value,obj=REGIONS[c]||{};$("regionCards").innerHTML=Object.entries(obj).map(([r,cities])=>`<div class="region"><b>${esc(r)}</b><div class="small" style="margin-top:6px">${cities.map(esc).join(" • ")}</div></div>`).join("")}
 
-/* ---------- notifications: real ntfy push delivery, iOS / Android / web ---------- */
-const SUB_LABELS={topic_link_ios:"📲 Open this topic in the iPhone / iPad app",topic_link_android:"📲 Open this topic in the Android app",
-  ios_app:"🍎 Get the ntfy app — iPhone / iPad (App Store)",android_app:"🤖 Get the ntfy app — Android (Play Store)",
-  f_droid:"🤖 F-Droid — Android without Google Play",web:"🌐 Topic page (web / any device)"};
-const SUB_ORDER=["topic_link_ios","topic_link_android","ios_app","android_app","f_droid","web"];
 let _watchPoll=null;
-function notifyVerdict(r){
-  if(!r)return '<span class="pill pill-blue">no attempt recorded yet</span>';
-  if(r.sent)return `<span class="pill pill-green">sent ✓</span> <span class="small">push server accepted it (HTTP ${esc(r.http_status||"?")}${r.items?" · "+esc(r.items)+" tender(s)":""})</span>`;
-  return `<span class="pill pill-red">not sent</span> <span class="small">${esc(r.reason||r.error||"reason not recorded")}</span>`;
-}
-function renderNotify(){
-  const s=NOTIFY.subscribe||{}, armed=!!NOTIFY.enabled&&!!NOTIFY.ntfy_topic;
-  $("notifyHead").innerHTML=
-    `<span class="pill ${armed?"pill-green":"pill-red"}">${armed?"notifications armed":"not armed"}</span> `
-    +`Provider: <b>${esc(NOTIFY.provider||"—")}</b> · server <b>${esc(NOTIFY.ntfy_server||"—")}</b> · pushes only new/changed at <b>${esc(NOTIFY.min_urgency||"High")}+</b> urgency.`
-    +(NOTIFY.ntfy_topic?`<div style="margin-top:8px">Topic (case-sensitive — treat it as a shared secret): <span class="topicchip">${esc(NOTIFY.ntfy_topic)}</span></div>`:"")
-    +(NOTIFY.note?`<div class="small" style="margin-top:6px">${esc(NOTIFY.note)}</div>`:"")
-    +`<div class="small" style="margin-top:6px">Nothing here ever pretends a push went out — the table below records what actually happened after each real engine cycle.</div>`;
-  const links=SUB_ORDER.filter(k=>s[k]);
-  $("notifySubs").innerHTML=links.length
-    ? links.map(k=>`<a class="subbtn" href="${esc(s[k])}" target="_blank" rel="noopener">${esc(SUB_LABELS[k]||k)}</a>`).join(" ")
-    : '<span class="small">No subscribe links found in notify.json.</span>';
-  const rows=NHIST.slice().reverse();
-  $("notifyTable").innerHTML="<thead><tr><th>When</th><th>Cycle</th><th>Result</th><th>Tenders</th><th>Topic</th><th>Detail</th></tr></thead><tbody>"
-    +(rows.length?rows.map(r=>`<tr>
-      <td>${esc(ts(r.at))}</td>
-      <td>${r.run_no!=null?"#"+esc(r.run_no):"—"}</td>
-      <td>${notifyVerdict(r)}</td>
-      <td>${r.items!=null?esc(r.items):"—"}</td>
-      <td class="small">${esc(r.topic||NOTIFY.ntfy_topic||"—")}</td>
-      <td class="small">${esc(r.error||r.reason||(r.sent?"accepted by the push server":"—"))}</td></tr>`).join("")
-      :'<tr><td colspan="6" class="small">No push attempts recorded in this snapshot yet — they appear here after the first engine cycle written by the notification-enabled engine.</td></tr>')
-    +"</tbody>";
-}
-function browserNotifyState(){
-  const b=$("browserNotifyBtn");if(!b)return;
-  const st=("Notification" in window)?Notification.permission:"unsupported";
-  b.textContent=st==="granted"?"🖥️ Browser notifications: ON in this browser"
-    :st==="denied"?"🖥️ Browser notifications blocked — allow them in this browser's site settings"
-    :st==="unsupported"?"🖥️ This browser has no notification support"
-    :"🖥️ Turn on browser notifications here";
-}
-function browserNotify(d){
-  if(!("Notification" in window)||Notification.permission!=="granted")return false;
-  try{
-    const run=d.last_run||{}, t=d.tenders||[];
-    const fresh=t.filter(x=>(x.is_new||x.is_updated)&&["Critical","High"].includes(x.urgency))
-                 .sort((a,b)=>(b.attention_score||0)-(a.attention_score||0));
-    const title="SAMCO Watcher — real check"+(run.run_no?" #"+run.run_no:"")+" finished";
-    const body=fresh.length
-      ? `${fresh.length} new/changed High+ tender(s). Top: ${fresh[0].title||""} — ${fresh[0].country||""} (deadline ${fresh[0].deadline||"not published"})`
-      : `${run.records_new||0} new, ${run.records_changed||0} changed — nothing at High+ urgency this cycle.`;
-    const n=new Notification(title,{body:body,icon:LOGO,tag:"samco-watch-"+(run.run_no||Date.now())});
-    if(NOTIFY.click_url)n.onclick=()=>{window.open(NOTIFY.click_url,"_blank")};
-    return true;
-  }catch(e){return false}
-}
 
 /* ---------- Watch now: triggers a real check, local engine or cloud live check ---------- */
 function watchProgress(host,s){
@@ -753,7 +658,7 @@ async function watchNowCloud(host,b){
   }catch(e){
     b.disabled=false;b.textContent="🔄 Watch now — run a real check";
     host.innerHTML=`<b>Cloud live check could not run:</b> ${esc(String(e.message||e))}
-     <div class="small" style="margin-top:6px">For the full engine pass (all sources, extraction, change detection) run the dashboard locally with run.bat and use this same button there.</div>`;
+     <div class="small" style="margin-top:6px">The full engine pass (all sources, extraction, change detection) runs automatically every hour in the cloud and this site refreshes after each one.</div>`;
     return;
   }
   const rows=j.results||[], nf=rows.filter(r=>r.failed), okc=rows.filter(r=>r.ok);
@@ -779,23 +684,6 @@ function watchNow(){
   (IS_LOCAL?watchNowLocal:watchNowCloud)(host,b);
 }
 
-/* ---------- notification test button (real POST through the configured server) ---------- */
-async function notifyTest(){
-  const b=$("testNotify"),out=$("notifyResult"),msg=$("notifyMsg");
-  b.disabled=true;msg.textContent="";out.innerHTML='<span class="spin"></span> Sending one real push through the configured server…';
-  let j;
-  try{
-    const r=await fetch("/api/notify-test",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({topic:NOTIFY.ntfy_topic||""})});
-    j=await r.json().catch(()=>({sent:false,error:"HTTP "+r.status+" — non-JSON answer"}));
-  }catch(e){j={sent:false,error:String(e)}}
-  out.innerHTML=`<b>Real result:</b> ${notifyVerdict(j)}
-   <div class="small" style="margin-top:4px">Server answered: <code>${esc(JSON.stringify(j))}</code></div>`
-   +(j.sent?"<div class=\"small\" style=\"margin-top:4px\">If the phone shows it, real High/Critical tender alerts will land the same way.</div>":"");
-  msg.textContent=j.sent?"Push accepted by ntfy — check your phone.":"Push was NOT sent — see the exact reason below.";
-  b.disabled=false;
-}
-
 ["country","status","urgency","verification","workType","search"].forEach(id=>$(id).addEventListener("input",()=>{queuePage=1;render()}));
 ["queueSearch","queueUrgency","queueCountry","queuePageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{queuePage=1;renderQueueTable(filtered())}));
 ["siteSearch","siteCountry","siteWatchState","sitePageSize"].forEach(id=>$(id)?.addEventListener("input",()=>{sitePage=1;renderSites()}));
@@ -811,22 +699,8 @@ $("gccPrev").addEventListener("click",()=>{gccPage=Math.max(1,gccPage-1);renderG
 $("gccNext").addEventListener("click",()=>{gccPage+=1;renderGCC()});
 $("regionCountry").addEventListener("change",renderRegions);
 $("watchNow").addEventListener("click",watchNow);
-$("notifyGo").addEventListener("click",()=>document.querySelector('.tabbtn[data-tab="notify"]').click());
-$("testNotify").addEventListener("click",notifyTest);
-$("browserNotifyBtn").addEventListener("click",async()=>{
-  const msg=$("notifyMsg");
-  if(!("Notification" in window)){msg.textContent="This browser has no notification support.";return}
-  if(Notification.permission==="default"){try{await Notification.requestPermission()}catch(e){}}
-  browserNotifyState();
-  if(Notification.permission==="granted"){
-    try{new Notification("SAMCO Watcher — browser notifications are ON",{body:"One of these pops here each time a real cycle finds new/changed High+ tenders.",icon:LOGO})}catch(e){}
-    msg.textContent="Browser notifications enabled in this browser.";
-  }else{
-    msg.textContent="Not enabled — this browser is blocking notifications for the site (see its site settings).";
-  }
-});
 document.querySelectorAll(".tabbtn").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.tab).classList.add("active")}));
-render();renderSites();renderGCC();renderAfrica();renderHealth();renderRuns();renderRegions();renderNotify();browserNotifyState();
+render();renderSites();renderGCC();renderAfrica();renderHealth();renderRuns();renderRegions();
 // Live refresh — when served by server.py (or any host exposing /api/data), poll for a
 // newer real snapshot and reload to it. Opened offline from disk, the embedded snapshot
 // stays as-is; nothing here ever fabricates data.
@@ -856,7 +730,6 @@ render();renderSites();renderGCC();renderAfrica();renderHealth();renderRuns();re
       const r=await fetch("/api/data",{cache:"no-store"});if(!r.ok)return;
       const d=await r.json();if(!d||!d.generated_at||busy)return;
       if(d.generated_at===DATA.generated_at||d.generated_at===dismissedFor)return;
-      browserNotify(d);
       toast(d.generated_at);
     }catch(e){/* static/file:// host — embedded snapshot is the current truth */}
   }
